@@ -1,4 +1,4 @@
-class Environment {
+export class Environment {
     constructor() {
         this.defaultMaxRounds = 100;
         this.initialState = {
@@ -9,36 +9,40 @@ class Environment {
         this.costPerPull = 1;
         this.rewardPerWin = 2;
         this.scenario = 'A';
+        this.customProbabilities = null; // For Playground mode
         this.reset();
     }
 
     _createMachines() {
-        // ENHANCEMENT: Make the non-stationary change point dynamic (halfway through the game)
+        // If custom probabilities are set (from Playground), use them.
+        if (this.customProbabilities && this.customProbabilities.length === 4) {
+            this.machines = this.customProbabilities.map(p => ({ true_probability: p }));
+            return;
+        }
+
         const changePoint = Math.floor(this.state.maxRounds / 2);
 
         if (this.scenario === 'B' && this.state.round >= changePoint) {
-             // Non-stationary: Probabilities have flipped
             this.machines = [
-                { true_probability: 0.75 }, // Was 0.25
-                { true_probability: 0.6 },  // Was 0.5
-                { true_probability: 0.25 }, // Was 0.75
-                { true_probability: 0.5 }   // Was 0.6
+                { true_probability: 0.75 }, { true_probability: 0.6 },
+                { true_probability: 0.25 }, { true_probability: 0.5 }
             ];
         } else {
-            // Default stationary probabilities
+            // Default stationary probabilities for Scenarios A, C (initially)
             this.machines = [
-                { true_probability: 0.25 },
-                { true_probability: 0.5 },
-                { true_probability: 0.75 },
-                { true_probability: 0.6 }
+                { true_probability: 0.25 }, { true_probability: 0.5 },
+                { true_probability: 0.75 }, { true_probability: 0.6 }
             ];
         }
     }
+    
+    // New method for the Playground
+    setCustomProbabilities(probs) {
+        this.customProbabilities = probs;
+    }
 
-    setScenario(scenario, restlessFunction = null, initialProbabilities = null) {
+    setScenario(scenario) {
         this.scenario = scenario;
-        this.restlessFunction = restlessFunction;
-        this.initialProbabilities = initialProbabilities;
         this.reset();
     }
 
@@ -47,15 +51,28 @@ class Environment {
         this.state.maxRounds = newMax;
     }
 
+    getMachineProbabilities() {
+        return this.machines.map(m => m.true_probability);
+    }
+
     getState() {
         return { ...this.state };
     }
 
     step(action) {
-        // ENHANCEMENT: Check for the change at the dynamic halfway point
         const changePoint = Math.floor(this.state.maxRounds / 2);
         if (this.scenario === 'B' && this.state.round === changePoint) {
-            this._createMachines(); // The world changes!
+            this._createMachines();
+        }
+        
+        // Logic for Restless Bandits (Scenario C)
+        if (this.scenario === 'C') {
+            this.machines.forEach((machine, index) => {
+                if (index !== action) {
+                    const noise = (Math.random() - 0.5) * 0.02; // Smaller, more frequent drift
+                    machine.true_probability = Math.max(0.05, Math.min(0.95, machine.true_probability + noise));
+                }
+            });
         }
 
         if (this.state.money <= 0 || this.state.round >= this.state.maxRounds) {
@@ -84,10 +101,4 @@ class Environment {
         this.state.maxRounds = this.initialState.maxRounds;
         this._createMachines();
     }
-
-    getTrueProbabilities() {
-        return this.machines.map(machine => machine.true_probability);
-    }
 }
-
-export default Environment;

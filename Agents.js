@@ -4,19 +4,13 @@ class Agent {
         this.numMachines = numMachines;
     }
 
-    // state is the full environment state, e.g., { money, round, maxRounds }
     chooseAction(state) {
         throw new Error("ChooseAction method must be implemented by subclass");
     }
 
-    // reward is a simple signal, e.g., +1 for win, -1 for loss
-    update(action, reward) {
-        // Optional for agents that don't learn (like Random)
-    }
+    update(action, reward) {}
 
-    reset() {
-        // Resets the agent's internal knowledge
-    }
+    reset() {}
 }
 
 // --- STANDARD AGENTS ---
@@ -59,7 +53,6 @@ export class GreedyAgent extends Agent {
 
     update(action, reward) {
         this.action_counts[action]++;
-        // Standard Q-learning update rule
         this.q_values[action] += (reward - this.q_values[action]) / this.action_counts[action];
     }
 }
@@ -78,10 +71,8 @@ export class EpsilonGreedyAgent extends Agent {
 
     chooseAction() {
         if (Math.random() < this.epsilon) {
-            // Explore
             return Math.floor(Math.random() * this.numMachines);
         } else {
-            // Exploit
             const maxQ = Math.max(...this.q_values);
             const bestActions = this.q_values
                 .map((q, i) => (q === maxQ ? i : -1))
@@ -101,7 +92,7 @@ export class EpsilonGreedyAgent extends Agent {
 
 export class DecayingEpsilonGreedyAgent extends EpsilonGreedyAgent {
     constructor(numMachines, decayRate = 0.01) {
-        super(numMachines, 1.0); // Start with epsilon = 1.0 (pure exploration)
+        super(numMachines, 1.0);
         this.initialEpsilon = 1.0;
         this.decayRate = decayRate;
     }
@@ -112,9 +103,8 @@ export class DecayingEpsilonGreedyAgent extends EpsilonGreedyAgent {
     }
 
     chooseAction(state) {
-        // Epsilon decays over time based on the round number
         this.epsilon = this.initialEpsilon / (1.0 + this.decayRate * state.round);
-        return super.chooseAction(); // Use the parent's chooseAction logic
+        return super.chooseAction();
     }
 }
 
@@ -125,7 +115,6 @@ export class UCB1Agent extends Agent {
     }
 
     reset() {
-        // q_values stores the SUM of rewards, not the average
         this.q_values = Array(this.numMachines).fill(0);
         this.action_counts = Array(this.numMachines).fill(0);
     }
@@ -133,14 +122,12 @@ export class UCB1Agent extends Agent {
     chooseAction(state) {
         const total_pulls = state.round + 1;
 
-        // First, play each machine once
         for (let i = 0; i < this.numMachines; i++) {
             if (this.action_counts[i] === 0) {
                 return i;
             }
         }
 
-        // For all subsequent pulls, use the UCB1 formula
         const ucb_scores = this.q_values.map((sum_reward, i) => {
             const mean_reward = sum_reward / this.action_counts[i];
             const exploration_bonus = Math.sqrt((2 * Math.log(total_pulls)) / this.action_counts[i]);
@@ -148,14 +135,11 @@ export class UCB1Agent extends Agent {
         });
         
         const maxScore = Math.max(...ucb_scores);
-        // Find the index of the max score
-        const action = ucb_scores.indexOf(maxScore);
-        return action;
+        return ucb_scores.indexOf(maxScore);
     }
 
     update(action, reward) {
         this.action_counts[action]++;
-        // UCB works with rewards in [0, 1]. We map win/loss to 1/0.
         this.q_values[action] += (reward > 0 ? 1 : 0);
     }
 }
@@ -167,19 +151,16 @@ export class ThompsonSamplingAgent extends Agent {
     }
 
     reset() {
-        // Represents the Beta distribution: Beta(alpha, beta)
-        // alpha = successes + 1, beta = failures + 1
         this.alphas = Array(this.numMachines).fill(1);
         this.betas = Array(this.numMachines).fill(1);
     }
 
-    _sampleGamma(shape, scale = 1) {
-        // Inefficient but simple Gamma sampler for integer shapes.
+    _sampleGamma(shape) {
         let sum = 0;
         for (let i = 0; i < shape; i++) {
             sum += -Math.log(1.0 - Math.random());
         }
-        return sum * scale;
+        return sum;
     }
 
     _sampleBeta(alpha, beta) {
@@ -191,8 +172,7 @@ export class ThompsonSamplingAgent extends Agent {
     chooseAction() {
         const samples = this.alphas.map((alpha, i) => this._sampleBeta(alpha, this.betas[i]));
         const maxSample = Math.max(...samples);
-        const action = samples.indexOf(maxSample);
-        return action;
+        return samples.indexOf(maxSample);
     }
     
     update(action, reward) {

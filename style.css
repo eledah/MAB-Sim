@@ -8,32 +8,51 @@
     --loss-color: #F44336;
 }
 
+html, body {
+    margin: 0;
+    padding: 0;
+    background-color: transparent;
+}
+
 body {
-    /* Use Vazirmatn as the primary font if available */
     font-family: 'Vazirmatn', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: var(--bg-color);
     color: var(--text-color);
-    padding-top: 2rem;
+    padding: 1rem;
+    box-sizing: border-box;
 }
 
-h1 {
-    color: var(--accent-color);
-}
-
-#simulation-container {
+.simulator-wrapper {
     background-color: var(--primary-color);
-    padding: 2rem;
+    padding: 1.5rem;
     border-radius: 12px;
     border: 1px solid var(--border-color);
     box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-    width: 90%;
+    width: 100%;
     max-width: 800px;
+    box-sizing: border-box;
 }
 
-#controls {
+.sim-header {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.sim-header h2 {
+    color: var(--accent-color);
+    margin: 0 0 0.5rem 0;
+}
+
+.sim-header p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #ccc;
+}
+
+.controls {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -42,7 +61,7 @@ h1 {
     flex-wrap: wrap;
 }
 
-select, button {
+select, button, input {
     background-color: #333;
     color: var(--text-color);
     border: 1px solid var(--border-color);
@@ -50,31 +69,36 @@ select, button {
     border-radius: 5px;
     cursor: pointer;
     font-size: 1rem;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Keep UI elements standard */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+input {
+    width: 50px;
+    text-align: center;
 }
 
 button:hover {
     background-color: #444;
 }
 
-#start-sim-btn {
+.start-sim-btn {
     background-color: var(--accent-color);
     color: white;
     font-weight: bold;
 }
 
-#progress-container {
+.progress-container {
     width: 100%;
     background-color: #333;
     border-radius: 5px;
     margin: 1rem 0;
-    display: none; /* Hidden by default */
+    display: none;
     text-align: center;
     position: relative;
     color: white;
 }
 
-#progress-bar {
+.progress-bar {
     width: 0%;
     height: 20px;
     background-color: var(--accent-color);
@@ -82,7 +106,7 @@ button:hover {
     transition: width 0.2s linear;
 }
 
-#progress-label {
+.progress-label {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -90,7 +114,7 @@ button:hover {
     font-size: 0.9rem;
 }
 
-#game-board {
+.game-board {
     display: flex;
     justify-content: space-around;
     margin: 2rem 0;
@@ -99,6 +123,9 @@ button:hover {
 
 .machine-container {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .machine {
@@ -143,27 +170,27 @@ button:hover {
     color: var(--loss-color);
 }
 
-.machine-history {
+.machine-info {
     font-size: 0.9rem;
     color: #aaa;
     margin-top: 0.5rem;
+    min-height: 1.2em;
 }
 
-#ui-feedback {
+.ui-feedback {
     display: flex;
     justify-content: space-around;
     font-size: 1.2rem;
     font-weight: bold;
 }
 
-#chart-container {
+.chart-container {
     margin-top: 2rem;
     height: 350px;
 }
 
-/* New styles for the description box */
-#agent-description {
-    display: none; /* Hidden by default */
+.agent-description {
+    display: none;
     font-family: 'Vazirmatn', sans-serif;
     direction: rtl;
     text-align: right;
@@ -175,12 +202,12 @@ button:hover {
     margin-top: 1.5rem;
 }
 
-#agent-description h3 {
+.agent-description h3 {
     color: var(--accent-color);
     margin-top: 0;
 }
 
-#log-area {
+.log-area {
     margin-top: 1.5rem;
     border: 1px solid var(--border-color);
     padding: 1rem;
@@ -190,29 +217,45 @@ button:hover {
     border-radius: 5px;
 }
 
-#log-list {
+.log-area ul {
     list-style-type: none;
     padding: 0;
     margin: 0;
     font-family: 'Courier New', Courier, monospace;
 }
 
-#summary-table-container {
+.summary-table-container {
     margin-top: 2rem;
     display: none;
 }
 
-#summary-table {
+.summary-table-container table {
     width: 100%;
     border-collapse: collapse;
 }
 
-#summary-table th, #summary-table td {
+.summary-table-container th, .summary-table-container td {
     border: 1px solid var(--border-color);
     padding: 8px;
     text-align: left;
 }
 
-#summary-table th {
+.summary-table-container th {
     background-color: #333;
+}
+
+.sim-actions {
+    text-align: center;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem; /* Added spacing */
+}
+
+.payout-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    color: #ccc;
+    margin-top: 0.5rem;
 }
