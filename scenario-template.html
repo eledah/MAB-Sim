@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Armed Bandit Simulator - Scenario</title>
+    
+    <!-- Added Vazirmatn Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Scenario-specific styles or overrides can go here */
+        .machine-probability {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 0.2rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav id="scenario-navigation">
+            <!-- Navigation links will be dynamically inserted here by main.js -->
+        </nav>
+    </header>
+
+    <div id="simulation-container">
+        <h2 id="scenario-title"></h2>
+        <p id="scenario-description"></p>
+
+        <div id="controls">
+            <button id="start-sim-btn">Start Simulation</button>
+            <button id="restart-btn">Restart</button>
+        </div>
+
+        <div id="progress-container">
+            <div id="progress-bar"></div>
+            <div id="progress-label">Running...</div>
+        </div>
+
+        <div id="game-board">
+            <div class="machine-container" data-machine-id="0">
+                <div class="machine-flair"></div>
+                <div class="machine">🎰</div>
+                <div class="machine-history">(0/0) | 0%</div>
+                <div class="machine-probability"></div>
+            </div>
+            <div class="machine-container" data-machine-id="1">
+                <div class="machine-flair"></div>
+                <div class="machine">🎰</div>
+                <div class="machine-history">(0/0) | 0%</div>
+                <div class="machine-probability"></div>
+            </div>
+            <div class="machine-container" data-machine-id="2">
+                <div class="machine-flair"></div>
+                <div class="machine">🎰</div>
+                <div class="machine-history">(0/0) | 0%</div>
+                <div class="machine-probability"></div>
+            </div>
+            <div class="machine-container" data-machine-id="3">
+                <div class="machine-flair"></div>
+                <div class="machine">🎰</div>
+                <div class="machine-history">(0/0) | 0%</div>
+                <div class="machine-probability"></div>
+            </div>
+        </div>
+
+        <div id="ui-feedback">
+            <p>Money: <span id="current-money">100</span></p>
+            <p>Round: <span id="current-round">0</span></p>
+        </div>
+
+        <div id="chart-container">
+            <canvas id="performance-chart"></canvas>
+        </div>
+
+        <!-- New element for agent description -->
+        <div id="agent-description"></div>
+
+        <div id="log-area">
+            <ul id="log-list"></ul>
+        </div>
+        
+        <div id="summary-table-container">
+            <table id="summary-table">
+                <thead>
+                    <tr>
+                        <th>Agent</th>
+                        <th>Final Money</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="main.js"></script>
+</body>
+</html>
