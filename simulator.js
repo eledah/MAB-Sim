@@ -90,6 +90,11 @@ export class Simulator {
                     <button class="restart-btn">Restart</button>
                 </div>
 
+                <div class="progress-container">
+                    <div class="progress-bar"></div>
+                    <div class="progress-label"></div>
+                </div>
+
                 <div class="game-board">
                     ${[...Array(4)].map((_, i) => `
                         <div class="machine-container" data-machine-id="${i}">
@@ -117,10 +122,6 @@ export class Simulator {
                         <thead><tr><th>Agent</th><th>Final Score</th></tr></thead>
                         <tbody></tbody>
                     </table>
-                </div>
-                <div class="progress-container">
-                    <div class="progress-bar"></div>
-                    <div class="progress-label"></div>
                 </div>
             </div>
         `;
@@ -181,11 +182,14 @@ export class Simulator {
         const envScenario = this.config.showControls ? this.scenarioSelect.value : this.config.environmentScenario;
         this.environment.setScenario(envScenario);
         
-        if (this.config.showPayoutInputs) {
+        if (this.config.machineConfig) {
+            this.environment.setMachineConfig(this.config.machineConfig);
+        } else if (this.config.showPayoutInputs) {
             const customProbs = Array.from(this.payoutInputs).map(input => parseFloat(input.value) / 100);
-            this.environment.setCustomProbabilities(customProbs);
+            const customConfig = customProbs.map(p => ({ prob: p }));
+            this.environment.setMachineConfig(customConfig);
         } else {
-             this.environment.setCustomProbabilities(null);
+             this.environment.setMachineConfig(null);
         }
 
         this.environment.reset();

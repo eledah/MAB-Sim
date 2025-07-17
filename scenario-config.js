@@ -5,12 +5,7 @@ export const scenarios = {
     'scenario-1': {
         name: 'Manual Play Playground',
         mode: 'manual',
-        maxRounds: 100,
-        showControls: false, // Hides mode/scenario selectors
-        showHistory: true,
-        showProbabilities: false,
-        environmentScenario: 'A',
-        description: 'This is your playground. Try to find the best machine by clicking on them yourself. Keep an eye on the history below each one!'
+        description: 'Try to find the best machine by clicking on them yourself. Keep an eye on the history below each one!'
     },
 
     // --- SCENARIO 2: Random Agent ---
@@ -18,10 +13,8 @@ export const scenarios = {
         name: 'Random Agent (True Payout Displayed)',
         mode: 'single-agent',
         agentToRun: 'random',
-        showControls: false,
-        showProbabilities: true, // Key feature for this scenario
-        environmentScenario: 'A',
-        description: 'Observe a Random Agent. The true payout percentages are displayed below. Notice how random selection performs poorly.'
+        showProbabilities: true,
+        description: 'The Random Agent selects machines with no strategy. Notice how its performance compares to the true probabilities, now visible to you.'
     },
 
     // --- SCENARIO 3: Greedy Agent ---
@@ -29,7 +22,6 @@ export const scenarios = {
         name: 'The Greedy Agent',
         mode: 'single-agent',
         agentToRun: 'greedy',
-        showControls: false,
         showProbabilities: true,
         environmentScenario: 'A',
         description: 'The Greedy Agent explores each machine once, then locks onto the best one it found. Run it a few times. Does it always find the *truly* best machine (75%)?'
@@ -40,7 +32,6 @@ export const scenarios = {
         name: 'Epsilon-Greedy Agent',
         mode: 'single-agent',
         agentToRun: 'epsilonGreedy',
-        showControls: false,
         showProbabilities: false,
         environmentScenario: 'A',
         description: 'This agent mostly exploits, but sometimes takes a random action to explore. This helps it avoid getting stuck on a suboptimal choice.'
@@ -49,7 +40,6 @@ export const scenarios = {
         name: 'Decaying Epsilon-Greedy Agent',
         mode: 'single-agent',
         agentToRun: 'decayingEpsilonGreedy',
-        showControls: false,
         showProbabilities: false,
         environmentScenario: 'A',
         description: 'This agent explores a lot at first, then gradually reduces exploration as it becomes more confident. This is often more efficient than fixed exploration.'
@@ -58,7 +48,6 @@ export const scenarios = {
         name: 'UCB1 Agent',
         mode: 'single-agent',
         agentToRun: 'ucb1',
-        showControls: false,
         showProbabilities: false,
         environmentScenario: 'A',
         description: 'UCB1 intelligently explores by preferring machines that are both promising and have not been tried many times (high uncertainty).'
@@ -67,7 +56,6 @@ export const scenarios = {
         name: 'Thompson Sampling Agent',
         mode: 'single-agent',
         agentToRun: 'thompson',
-        showControls: false,
         showProbabilities: false,
         environmentScenario: 'A',
         description: 'A sophisticated Bayesian agent that maintains a probability distribution of what the true win rate might be for each machine and samples from it to choose an action.'
@@ -78,7 +66,6 @@ export const scenarios = {
         name: 'Comparing All Agents (Stable Environment)',
         mode: 'compare-all',
         maxRounds: 500,
-        showControls: false,
         environmentScenario: 'A',
         description: 'See all agents compete on the same playing field. Which strategy wins when the machine probabilities are stable?'
     },
@@ -88,8 +75,7 @@ export const scenarios = {
         name: 'Monte Carlo Analysis (Stable Environment)',
         mode: 'monte-carlo',
         maxRounds: 500,
-        numMonteCarloRuns: 100, // Reduced for faster web performance
-        showControls: false,
+        numMonteCarloRuns: 100,
         environmentScenario: 'A',
         description: 'This runs the simulation 100 times and averages the results to show each agent\'s true long-term performance. Note how the advanced agents clearly separate from the pack.'
     },
@@ -100,8 +86,7 @@ export const scenarios = {
         mode: 'monte-carlo',
         maxRounds: 500,
         numMonteCarloRuns: 100,
-        showControls: false,
-        environmentScenario: 'B', // The world changes halfway through!
+        environmentScenario: 'B',
         description: 'The environment is unstable: the best machine becomes the worst halfway through. Notice the Greedy agent\'s failure to adapt, while agents that keep exploring perform much better.'
     },
 
@@ -111,18 +96,51 @@ export const scenarios = {
         mode: 'monte-carlo',
         maxRounds: 500,
         numMonteCarloRuns: 100,
-        showControls: false,
-        environmentScenario: 'C', // New Restless scenario
+        environmentScenario: 'C',
         description: 'In this scenario, the win rates of machines you *don\'t* play drift randomly. This requires constant re-evaluation. Which agents excel when the world is always shifting?'
+    },
+
+    // --- NEW PHILOSOPHICAL SCENARIOS ---
+    'scenario-12': {
+        name: 'The Treasure Hunter (High Risk, High Reward)',
+        mode: 'monte-carlo',
+        maxRounds: 500,
+        numMonteCarloRuns: 100,
+        showProbabilities: true,
+        description: 'Three machines have small, reliable payouts, but one is a "treasure chest" with a low chance of a massive reward. Which strategy is brave enough to find it?',
+        machineConfig: [
+            { prob: 0.5, reward: 2 },
+            { prob: 0.6, reward: 2 },
+            { prob: 0.05, reward: 50 },
+            { prob: 0.4, reward: 2 }
+        ]
+    },
+
+    'scenario-13': {
+        name: '"The Cataclysm" (Sudden, Drastic Change)',
+        mode: 'monte-carlo',
+        maxRounds: 500,
+        numMonteCarloRuns: 100,
+        environmentScenario: 'D',
+        description: 'A stable world with a clear winner is turned upside down halfway through the simulation. This is a brutal test of an agent\'s ability to adapt to unforeseen, radical change.'
+    },
+
+    'scenario-14': {
+        name: '"The Fading Garden" (Gradual Obsolescence)',
+        mode: 'monte-carlo',
+        maxRounds: 1000,
+        numMonteCarloRuns: 100,
+        environmentScenario: 'E',
+        description: 'The best machine slowly becomes less effective over time, while the second-best improves. This tests an agent\'s ability to notice and adapt to gradual, subtle changes rather than sudden shocks.'
     },
 
     // --- FINAL SCENARIO: The Playground ---
     'playground': {
         name: 'The Ultimate Playground',
         mode: 'playground',
-        showControls: true, // Show all dropdowns
+        showControls: true,
         showProbabilities: true,
-        showPayoutInputs: true, // Show inputs to set probabilities
+        showPayoutInputs: true,
         maxRounds: 500,
         environmentScenario: 'A',
         description: 'Configure everything! Set custom payout rates, change the scenario, and run any agent or analysis mode you want to test your own hypotheses.'
