@@ -55,6 +55,7 @@ export class GreedyAgent extends Agent {
 
     update(action, reward) {
         this.action_counts[action]++;
+        // Incremental average update
         this.q_values[action] += (reward - this.q_values[action]) / this.action_counts[action];
     }
 }
@@ -73,8 +74,10 @@ export class EpsilonGreedyAgent extends Agent {
 
     chooseAction(state) {
         if (Math.random() < this.epsilon) {
+            // Explore
             return Math.floor(Math.random() * this.numMachines);
         } else {
+            // Exploit
             const maxQ = Math.max(...this.q_values);
             const bestActions = this.q_values
                 .map((q, i) => (q === maxQ ? i : -1))
@@ -94,7 +97,7 @@ export class EpsilonGreedyAgent extends Agent {
 
 export class DecayingEpsilonGreedyAgent extends EpsilonGreedyAgent {
     constructor(numMachines, decayRate = 0.01) {
-        super(numMachines, 1.0);
+        super(numMachines, 1.0); // Start with full exploration
         this.initialEpsilon = 1.0;
         this.decayRate = decayRate;
     }
@@ -105,8 +108,9 @@ export class DecayingEpsilonGreedyAgent extends EpsilonGreedyAgent {
     }
 
     chooseAction(state) {
+        // Decay epsilon over time
         this.epsilon = this.initialEpsilon / (1.0 + this.decayRate * state.round);
-        return super.chooseAction(state); // Pass state down
+        return super.chooseAction(state); // Use parent's epsilon-greedy logic
     }
 }
 
@@ -117,7 +121,7 @@ export class UCB1Agent extends Agent {
     }
 
     reset() {
-        this.reward_sums = Array(this.numMachines).fill(0); // RENAMED
+        this.reward_sums = Array(this.numMachines).fill(0);
         this.action_counts = Array(this.numMachines).fill(0);
     }
 
@@ -142,7 +146,7 @@ export class UCB1Agent extends Agent {
     }
 
     /**
-     * NEW: Provides the individual components of the UCB calculation for visualization.
+     * Provides the individual components of the UCB calculation for visualization.
      * @returns {Array<object>} An array of objects, each with mean and bonus properties.
      */
     getUCBComponents() {
@@ -159,7 +163,7 @@ export class UCB1Agent extends Agent {
 
     update(action, reward) {
         this.action_counts[action]++;
-        this.reward_sums[action] += reward; // FIXED: Add the actual reward value
+        this.reward_sums[action] += reward;
     }
 }
 
@@ -170,11 +174,11 @@ export class ThompsonSamplingAgent extends Agent {
     }
 
     reset() {
+        // Start with a uniform prior (Beta(1,1))
         this.alphas = Array(this.numMachines).fill(1);
         this.betas = Array(this.numMachines).fill(1);
     }
 
-    // A simple Gamma sampler for the Beta distribution
     _sampleGamma(shape) {
         let sum = 0;
         for (let i = 0; i < shape; i++) {
@@ -183,7 +187,6 @@ export class ThompsonSamplingAgent extends Agent {
         return sum;
     }
 
-    // Generate a sample from a Beta(alpha, beta) distribution
     _sampleBeta(alpha, beta) {
         const sample_gamma_alpha = this._sampleGamma(alpha);
         const sample_gamma_beta = this._sampleGamma(beta);
@@ -196,12 +199,20 @@ export class ThompsonSamplingAgent extends Agent {
         return samples.indexOf(maxSample);
     }
     
+    /**
+     * Provides the internal alpha and beta parameters for visualization.
+     * @returns {{alphas: Array<number>, betas: Array<number>}}
+     */
+    getBetaParameters() {
+        return { alphas: this.alphas, betas: this.betas };
+    }
+
     update(action, reward) {
-        // Thompson Sampling works best with binary rewards (win/loss)
+        // Thompson Sampling works best with binary rewards (win/loss).
         if (reward > 0) {
-            this.alphas[action]++;
+            this.alphas[action]++; // Increment alpha on a "win"
         } else {
-            this.betas[action]++;
+            this.betas[action]++; // Increment beta on a "loss"
         }
     }
 }

@@ -62,7 +62,10 @@ export class Simulator {
         }
 
         const mode = this.ui.getMode();
-        if (mode === 'manual') { this.reset(); return; }
+        if (mode === 'manual') {
+            this.reset();
+            return;
+        }
 
         const isAnalysis = mode === 'compare-all' || mode === 'monte-carlo';
         if (isAnalysis) {
@@ -91,7 +94,7 @@ export class Simulator {
             this.agent = agentInfo.create(this.numMachines);
             this.chartManager.renderSingleRun(agentInfo.name, this.environment.getState());
             this.ui.displayAgentDescription(AGENT_DESCRIPTIONS[agentKey]);
-            this.ui.hideUCBViz();
+            this.ui.hideViz(); // Hide all visualizations by default
             
             this.simulationRunning = true;
             this.ui.setButtonState('running');
@@ -109,9 +112,14 @@ export class Simulator {
         
         this._updateAfterStep(action, win, reward, newState);
 
+        // Check which agent is running and call the appropriate viz function
         if (this.agent instanceof Agents.UCB1Agent) {
-            const ucbComponents = this.agent.getUCBComponents();
-            this.ui.updateUCBViz(ucbComponents);
+            this.ui.updateUCBViz(this.agent.getUCBComponents());
+        } else if (this.agent instanceof Agents.ThompsonSamplingAgent) {
+            this.ui.updateThompsonViz(this.agent.getBetaParameters());
+        } else {
+            // Hide viz for agents that don't have one (Greedy, Random, etc.)
+            this.ui.hideViz();
         }
 
         if (done) {

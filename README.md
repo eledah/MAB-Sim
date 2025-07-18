@@ -1,64 +1,163 @@
-# Interactive Multi-Armed Bandit Simulator
+# شبیه‌ساز تعاملی راهزنان چنددست (Multi-Armed Bandit)
 
-This project is a self-contained, interactive JavaScript simulation designed to teach the core concepts of the Multi-Armed Bandit problem. It provides a hands-on learning experience for understanding the trade-off between Exploration and Exploitation in decision-making under uncertainty.
+این پروژه یک شبیه‌ساز تعاملی، آموزشی و قابل جاسازی (Embeddable) برای نمایش و مقایسه‌ی الگوریتم‌های مختلف مسئله‌ی راهزنان چنددست (Multi-Armed Bandit) است. این شبیه‌ساز با استفاده از جاوااسکریپت خالص (ES6 Modules)، کتابخانه‌ی Chart.js و CSS مدرن ساخته شده است و هدف آن ارائه‌ی درک شهودی از نحوه‌ی عملکرد، نقاط قوت و ضعف هر استراتژی در محیط‌های گوناگون است.
 
-The simulation is built with Vanilla JavaScript for performance and embeddability, and it uses Chart.js for real-time data visualization.
 
-## Features
 
-*   **Manual Play Mode:** Directly interact with the slot machines to get a feel for the problem.
-*   **Agent-Driven Simulation:** Select from different AI agents (Random, Greedy, Epsilon-Greedy) and watch them solve the problem automatically.
-*   **Comparative Analysis:** Run multiple agents in the same environment and compare their performance head-to-head on a single chart.
-*   **Scenario Builder:** Switch between a standard (stationary) environment and a non-stationary one where probabilities change, demonstrating the need for continuous exploration.
-*   **Real-time Feedback:** An animated chart plots the agent's performance, a log details every action, and each machine displays its own performance history.
+## ✨ ویژگی‌های کلیدی
 
-## How to Run Locally
+- **موتور ماژولار:** معماری پروژه مبتنی بر کلاس‌ها و ماژول‌های جداگانه برای مدیریت UI، منطق شبیه‌سازی، الگوریتم‌ها و محیط است.
+- **پیکربندی-محور:** تمام سناریوها در یک فایل مرکزی (`scenario-config.js`) تعریف می‌شوند که این امر اضافه کردن سناریوهای جدید را بسیار آسان می‌کند.
+- **انواع الگوریتم‌ها:** شامل پیاده‌سازی الگوریتم‌های کلاسیک و پیشرفته:
+  - Random (تصادفی)
+  - Greedy (حریصانه)
+  - Epsilon-Greedy (اپسیلون-حریص)
+  - Decaying Epsilon-Greedy (اپسیلون-حریص کاهنده)
+  - UCB1 (حد بالای اطمینان)
+  - Thompson Sampling (نمونه‌گیری تامپسون)
+- **محیط‌های چالشی:** قابلیت شبیه‌سازی در محیط‌های مختلف برای تست مقاومت الگوریتم‌ها:
+  - **Stationary:** محیط ثابت با احتمال برد مشخص.
+  - **Non-Stationary:** محیطی که در نیمه‌ی راه، بهترین ماشین به بدترین ماشین تبدیل می‌شود.
+  - **Restless Bandits:** احتمال برد ماشین‌هایی که انتخاب نمی‌شوند، به صورت تصادفی تغییر می‌کند.
+  - **و سناریوهای خاص دیگر...**
+- **حالت‌های تحلیلی:**
+  - **Single Run:** اجرای انیمیشنی یک الگوریتم خاص.
+  - **Compare All:** اجرای تمام الگوریتم‌ها و مقایسه‌ی عملکرد آن‌ها روی یک نمودار.
+  - **Monte Carlo:** اجرای صدها باره‌ی تمام الگوریتم‌ها برای نمایش میانگین عملکرد واقعی و نوارهای خطا (Error Bands).
+- **بازخورد بصری هوشمند:**
+  - نمایش بصری نحوه‌ی "تفکر" الگوریتم‌های **UCB1** (نمایش پاداش تخمینی و ضریب اکتشاف) و **Thompson Sampling** (نمایش توزیع احتمال بتا).
+- **Playground:** یک محیط کامل با تمام کنترل‌ها برای تست آزادانه و تنظیم دلخواه احتمالات برد ماشین‌ها.
 
-Because this project uses JavaScript Modules, you cannot run it by opening the `index.html` file directly in your browser due to security policies (CORS). You must serve the files using a simple local web server.
+## 📂 ساختار پروژه
 
-**The Easiest Way (with Python):**
+پروژه به گونه‌ای طراحی شده که منطق از نمایش کاملاً جدا باشد.
 
-1.  Open a terminal or command prompt.
-2.  Navigate to the project's root directory (the folder containing `index.html`).
-    ```bash
-    cd path/to/interactive-bandit-simulator
-    ```
-3.  Run the following command.
-    ```bash
-    # If you have Python 3
-    python -m http.server
+```
+/
+├── Agents.js               # پیاده‌سازی تمام الگوریتم‌ها (عامل‌ها)
+├── ChartManager.js         # مدیریت تمام عملیات مربوط به نمودارها (Chart.js)
+├── constants.js            # داده‌های ثابت مانند رنگ‌ها و لیست الگوریتم‌ها
+├── Environment.js          # منطق محیط‌های مختلف (ثابت، متغیر و ...)
+├── UIManager.js            # مسئول ساخت HTML و مدیریت تمام عناصر DOM
+├── SimulationRunner.js     # اجرای منطق سنگین تحلیل‌ها (Compare All, Monte Carlo)
+├── simulator.js            # کلاس اصلی و هماهنگ‌کننده مرکزی شبیه‌ساز
+|
+├── scenario-config.js      # مهم‌ترین فایل: "مغز" پروژه و محل تعریف تمام سناریوها
+├── scenario-loader.js      # اسکریپت سبک برای پیدا کردن placeholderها و اجرای شبیه‌ساز
+|
+├── playground.html         # فایل نمونه برای اجرای سناریوی Playground
+├── scenario-1.html         # فایل نمونه برای اجرای سناریوی شماره ۱
+├── style.css               # تمام استایل‌های پروژه
+└── README.md               # (همین فایل)
+```
 
-    # If you have Python 2
-    python -m SimpleHTTPServer
-    ```
-4.  Open your web browser and go to `http://localhost:8000`.
+## 🚀 روش اجرا
 
-## Project Roadmap
+این پروژه به هیچ ابزار Build یا Dependency خاصی نیاز ندارد.
 
-This section outlines potential future enhancements for the simulator.
+1.  این ریپازیتوری را Clone کنید.
+2.  یکی از فایل‌های `playground.html` یا `scenario-X.html` را مستقیماً در مرورگر خود باز کنید.
+3.  برای توسعه و جلوگیری از مشکلات احتمالی CORS، بهتر است پروژه را از طریق یک سرور محلی (مانند افزونه Live Server در VS Code) اجرا کنید.
 
-### V2: Advanced Agents & Deeper Analysis
+---
 
-*   **[FEATURE] More Sophisticated Agents:**
-    *   Implement the **Upper Confidence Bound (UCB1)** agent to demonstrate a more advanced exploration strategy.
-    *   Implement **Thompson Sampling**, a Bayesian approach to the problem.
-*   **[FEATURE] In-depth Agent Knowledge:**
-    *   Add a new chart view that visualizes an agent's internal estimates of each machine's win rate over time. This would provide a powerful look into *how* the agent is "learning."
-*   **[IMPROVEMENT] Granular Epsilon Control:**
-    *   Change the fixed Epsilon value to a slider, allowing users to see how different levels of exploration affect the Epsilon-Greedy agent's performance.
+## 🔧 **چگونه یک سناریوی جدید اضافه کنیم؟**
 
-### V3: Customization & Scenarios
+اضافه کردن یک سناریوی کاملاً جدید به این پروژه تنها در **دو گام ساده** انجام می‌شود، زیرا معماری پروژه کاملاً پیکربندی-محور است.
 
-*   **[FEATURE] Custom Scenario Builder:**
-    *   Allow users to define their own environments: set the number of machines, their true probabilities, costs, and rewards.
-*   **[FEATURE] Saved Scenarios:**
-    *   Implement a system to save and load custom scenarios, perhaps by encoding the state in the URL for easy sharing.
-*   **[IMPROVEMENT] More Non-Stationary Environments:**
-    *   Add more complex non-stationary scenarios, such as probabilities that drift randomly over time instead of changing abruptly.
+### گام اول: تعریف سناریو در `scenario-config.js`
 
-### General Improvements
+این مهم‌ترین مرحله است. فایل `scenario-config.js` را باز کنید و یک آبجکت جدید به لیست `scenarios` اضافه کنید. کلید (Key) این آبجکت، شناسه منحصر به فرد سناریوی شما خواهد بود.
 
-*   **[UX] Onboarding/Tutorial:**
-    *   Add a simple, guided tour for first-time users explaining the UI and the core concepts.
-*   **[DATA] Export Results:**
-    *   Allow users to export simulation data (like the performance history of each agent) as a CSV file for further analysis.
+در اینجا یک نمونه کامل با تمام پارامترهای ممکن آورده شده است:
+
+```javascript
+// scenario-config.js
+
+export const scenarios = {
+    // ... سناریوهای موجود
+
+    // سناریوی جدید شما در اینجا اضافه می‌شود
+    'my-new-scenario': {
+        // نامی که در بالای شبیه‌ساز نمایش داده می‌شود
+        name: 'سناریوی شکار گنج پیشرفته',
+
+        // توضیحی که در زیر نام سناریو می‌آید
+        description: 'در این محیط، سه ماشین پاداش کم ولی قابل اعتماد دارند، اما یک ماشین احتمال برد بسیار پایینی دارد ولی در صورت برد، پاداش هنگفتی می‌دهد. کدام الگوریتم آن را پیدا می‌کند؟',
+        
+        // حالت اجرا: 'single-agent', 'compare-all', 'monte-carlo', 'manual'
+        mode: 'monte-carlo',
+
+        // (فقط برای حالت single-agent) کلید الگوریتمی که باید اجرا شود
+        agentToRun: 'ucb1',
+
+        // تعداد کل دورهای شبیه‌سازی
+        maxRounds: 700,
+
+        // (فقط برای حالت monte-carlo) تعداد تکرار شبیه‌سازی
+        numMonteCarloRuns: 200,
+
+        // شناسه محیط برای فعال کردن منطق خاص در Environment.js (مثلاً 'C' برای Restless)
+        environmentScenario: 'A', // 'A' یعنی یک محیط استاندارد و بدون تغییرات دینامیک خاص
+
+        // **مهم‌ترین بخش:** تعریف دقیق ماشین‌ها
+        // این بخش بر تمام تنظیمات دیگر اولویت دارد
+        machineConfig: [
+            { prob: 0.6, reward: 2 },  // ماشین ۱
+            { prob: 0.5, reward: 2 },  // ماشین ۲
+            { prob: 0.02, reward: 80 }, // ماشین ۳: گنج!
+            { prob: 0.55, reward: 2 }  // ماشین ۴
+        ],
+
+        // (اختیاری) برای محیط‌های غیرثابت، این کانفیگ در نیمه‌ی راه جایگزین می‌شود
+        machineConfigAfterChange: [
+            { prob: 0.1, reward: 2 },
+            { prob: 0.1, reward: 2 },
+            { prob: 0.8, reward: 5 }, // پس از نیمه راه، این ماشین بهترین می‌شود
+            { prob: 0.1, reward: 2 }
+        ],
+
+        // آیا کنترل‌های انتخاب الگوریتم و سناریو نمایش داده شوند؟
+        showControls: false,
+        // آیا احتمال واقعی هر ماشین زیر آن نمایش داده شود؟
+        showProbabilities: true
+    }
+};
+```
+
+### گام دوم: ساخت فایل HTML
+
+یک فایل HTML جدید (مثلاً `my-scenario.html`) بسازید و کد زیر را در آن قرار دهید.
+
+**نکته کلیدی:** `id` تگ `<div>` باید **دقیقاً** با کلیدی که در `scenario-config.js` تعریف کرده‌اید، یکسان باشد (`my-new-scenario`).
+
+```html
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAB Scenario: سناریوی جدید من</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- 
+        این ID باید دقیقاً با کلید تعریف شده در scenario-config.js مطابقت داشته باشد.
+        اسکریپت scenario-loader.js این ID را پیدا کرده و شبیه‌ساز را در آن رندر می‌کند.
+    -->
+    <div id="my-new-scenario"></div>
+
+    <!-- کتابخانه‌ی نمودار -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- اسکریپت اصلی برای اجرای شبیه‌ساز -->
+    <script type="module" src="scenario-loader.js"></script>
+</body>
+</html>
+```
+
+**تمام شد!** اکنون با باز کردن فایل `my-scenario.html` در مرورگر، سناریوی جدید شما با تنظیمات دلخواهتان اجرا خواهد شد.

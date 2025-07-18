@@ -62,9 +62,16 @@ export class UIManager {
                             <div class="machine-info"></div>
                             
                             <div class="viz-container">
-                                <div class="viz-bar-wrapper">
-                                    <div class="viz-bar ucb-value-bar"></div>
-                                    <div class="viz-bar ucb-bonus-bar"></div>
+                                <div class="ucb-viz">
+                                    <div class="viz-bar-wrapper">
+                                        <div class="viz-bar ucb-value-bar"></div>
+                                        <div class="viz-bar ucb-bonus-bar"></div>
+                                    </div>
+                                </div>
+                                <div class="thompson-viz">
+                                    <svg class="thompson-viz-svg" preserveAspectRatio="none" viewBox="0 0 100 40">
+                                        <path class="thompson-viz-path" d="M 0 40 L 100 40 Z" />
+                                    </svg>
                                 </div>
                             </div>
 
@@ -147,7 +154,7 @@ export class UIManager {
         this.startBtn.textContent = 'Start';
         this.startBtn.disabled = false;
         this.agentDescriptionEl.style.display = 'none';
-        this.hideUCBViz();
+        this.hideViz();
         
         this.machineContainers.forEach((container, index) => {
             container.querySelector('.machine').classList.remove('highlight');
@@ -265,22 +272,63 @@ export class UIManager {
 
     updateUCBViz(ucbComponents) {
         this.vizContainers.forEach((container, i) => {
-            container.classList.add('visible');
+            container.className = 'viz-container visible ucb-visible';
             const valueBar = container.querySelector('.ucb-value-bar');
             const bonusBar = container.querySelector('.ucb-bonus-bar');
             if (!valueBar || !bonusBar) return;
-
             const components = ucbComponents[i];
-            const maxValue = 5.0; // Normalize for visualization, assuming mean+bonus won't exceed this.
+            const maxValue = 5.0; // Normalize for visualization.
             const valueWidth = Math.min(100, ((components.mean * 0.5) / maxValue) * 100);
             const bonusWidth = Math.min(100 - valueWidth, (components.bonus / maxValue) * 100);
-
             valueBar.style.width = `${valueWidth}%`;
             bonusBar.style.width = `${bonusWidth}%`;
         });
     }
 
-    hideUCBViz() {
-        this.vizContainers.forEach(container => container.classList.remove('visible'));
+    updateThompsonViz(betaParams) {
+        const { alphas, betas } = betaParams;
+        const numPoints = 30;
+        const svgWidth = 100;
+        const svgHeight = 40;
+
+        this.vizContainers.forEach((container, i) => {
+            container.className = 'viz-container visible thompson-visible';
+            const path = container.querySelector('.thompson-viz-path');
+            if (!path) return;
+
+            const alpha = alphas[i];
+            const beta = betas[i];
+            const points = [];
+            let maxY = 0;
+
+            for (let j = 0; j <= numPoints; j++) {
+                const x = j / numPoints;
+                let y = 0;
+                if (x > 0 && x < 1) {
+                    y = Math.pow(x, alpha - 1) * Math.pow(1 - x, beta - 1);
+                } else if (x === 0 && alpha === 1) y = 1;
+                else if (x === 1 && beta === 1) y = 1;
+                
+                if (!isFinite(y)) y = 0;
+                points.push({ x, y });
+                if (y > maxY) maxY = y;
+            }
+
+            if (maxY === 0) maxY = 1;
+
+            let pathData = `M 0,${svgHeight}`;
+            points.forEach(p => {
+                const px = p.x * svgWidth;
+                const py = svgHeight - (p.y / maxY) * svgHeight;
+                pathData += ` L ${px.toFixed(2)},${py.toFixed(2)}`;
+            });
+            pathData += ` L ${svgWidth},${svgHeight} Z`;
+
+            path.setAttribute('d', pathData);
+        });
+    }
+
+    hideViz() {
+        this.vizContainers.forEach(container => container.className = 'viz-container');
     }
 }
