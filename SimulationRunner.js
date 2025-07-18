@@ -17,8 +17,7 @@ function _calculateErrorBands(histories, meanHistory, maxRounds) {
         const stdDev = Math.sqrt(roundValues.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b, 0) / roundValues.length);
         stdErrorHistory.push(stdDev / Math.sqrt(roundValues.length));
     }
-    // 95% Confidence Interval
-    const upperBand = meanHistory.map((m, i) => m + 1.96 * stdErrorHistory[i]);
+    const upperBand = meanHistory.map((m, i) => m + 1.96 * stdErrorHistory[i]); // 95% Confidence Interval
     const lowerBand = meanHistory.map((m, i) => m - 1.96 * stdErrorHistory[i]);
     return { upperBand, lowerBand };
 }
@@ -32,15 +31,15 @@ export async function runAnalysis(agentConstructors, environment, maxRounds, isM
     for (let i = 0; i < numRuns; i++) {
         for (const agentInfo of agentConstructors) {
             environment.reset();
-            // Important: create a new agent instance for each run
-            const currentAgent = agentInfo.create(environment.getNumMachines()); 
+            const currentAgent = agentInfo.create(environment.getNumMachines());
             
             const moneyHistory = [environment.getState().money];
             let done = false;
             while (!done) {
-                const action = currentAgent.chooseAction(environment.getState());
+                const currentState = environment.getState();
+                const action = currentAgent.chooseAction(currentState);
                 const { newState, reward, done: stepDone } = environment.step(action);
-                currentAgent.update(action, reward); // Pass the actual reward
+                currentAgent.update(action, reward);
                 moneyHistory.push(newState.money);
                 done = stepDone;
             }
@@ -49,7 +48,6 @@ export async function runAnalysis(agentConstructors, environment, maxRounds, isM
         if (isMonteCarlo) {
              const progress = ((i + 1) / numRuns) * 100;
              onProgress(progress, `Calculating... (${i + 1}/${numRuns} runs)`);
-             // Yield to the event loop to allow UI updates
              await new Promise(r => setTimeout(r, 0));
         }
     }

@@ -1,3 +1,5 @@
+// Environment.js
+
 export class Environment {
     constructor() {
         this.defaultMaxRounds = 100;
@@ -7,9 +9,13 @@ export class Environment {
             maxRounds: this.defaultMaxRounds
         };
         this.costPerPull = 1;
-        this.defaultRewardPerWin = 2; // Fallback reward
+        this.defaultRewardPerWin = 2;
         this.scenario = 'A';
-        this.machineConfig = null; // To hold custom machine data from scenario config
+        
+        // Config placeholders
+        this.machineConfig = null;
+        this.machineConfigAfterChange = null;
+        
         this.cataclysmProbs = null; // Used to store shuffled probabilities in scenario D
         this.reset();
     }
@@ -22,71 +28,33 @@ export class Environment {
     _createMachines() {
         const changePoint = Math.floor(this.state.maxRounds / 2);
 
-        // 1. If a full custom config is provided, use it. This is the highest priority.
-        if (this.machineConfig) {
+        // Scenario 'D' is a special case that dynamically creates its after-change state
+        if (this.scenario === 'D' && this.state.round >= changePoint) {
+            if (!this.cataclysmProbs) {
+                this.cataclysmProbs = Array.from({length: 4}, () => Math.random() * 0.8 + 0.1); // Random probs between 10% and 90%
+            }
+            this.machines = this.cataclysmProbs.map(p => ({ true_probability: p, reward: this.defaultRewardPerWin }));
+        } 
+        // All other scenarios are handled by the provided configs
+        else if (this.state.round >= changePoint && this.machineConfigAfterChange) {
+            this.machines = this.machineConfigAfterChange.map(config => ({
+                true_probability: config.prob,
+                reward: config.reward || this.defaultRewardPerWin
+            }));
+        } else if (this.machineConfig) {
             this.machines = this.machineConfig.map(config => ({
                 true_probability: config.prob,
                 reward: config.reward || this.defaultRewardPerWin
             }));
-            return;
-        }
-
-        // 2. Handle pre-defined, letter-coded scenarios
-        switch (this.scenario) {
-            case 'B': // Non-Stationary (Sudden Shift)
-                if (this.state.round >= changePoint) {
-                    this.machines = [
-                        { true_probability: 0.75, reward: this.defaultRewardPerWin },
-                        { true_probability: 0.60, reward: this.defaultRewardPerWin },
-                        { true_probability: 0.25, reward: this.defaultRewardPerWin },
-                        { true_probability: 0.50, reward: this.defaultRewardPerWin }
-                    ];
-                } else {
-                    this.machines = [
-                        { true_probability: 0.25, reward: this.defaultRewardPerWin },
-                        { true_probability: 0.50, reward: this.defaultRewardPerWin },
-                        { true_probability: 0.75, reward: this.defaultRewardPerWin },
-                        { true_probability: 0.60, reward: this.defaultRewardPerWin }
-                    ];
-                }
-                break;
-            
-            case 'D': // Cataclysm (Random Reshuffle)
-                if (this.state.round >= changePoint) {
-                    // On the first step after the change point, generate and store new probs
-                    if (!this.cataclysmProbs) {
-                        this.cataclysmProbs = Array.from({length: 4}, () => Math.random() * 0.8 + 0.1); // Random probs between 10% and 90%
-                    }
-                    this.machines = this.cataclysmProbs.map(p => ({ true_probability: p, reward: this.defaultRewardPerWin }));
-                } else {
-                    this.cataclysmProbs = null; // Ensure we regenerate on next full run
-                    this.machines = [
-                        { true_probability: 0.1, reward: this.defaultRewardPerWin },
-                        { true_probability: 0.2, reward: this.defaultRewardPerWin },
-                        { true_probability: 0.9, reward: this.defaultRewardPerWin }, // One clear winner initially
-                        { true_probability: 0.3, reward: this.defaultRewardPerWin }
-                    ];
-                }
-                break;
-
-            case 'A': // Default Stationary
-            case 'C': // Restless (starts as stationary)
-            case 'E': // Fading Garden (starts as stationary)
-            default:
-                this.machines = [
-                    { true_probability: 0.25, reward: this.defaultRewardPerWin },
-                    { true_probability: 0.50, reward: this.defaultRewardPerWin },
-                    { true_probability: 0.75, reward: this.defaultRewardPerWin },
-                    { true_probability: 0.60, reward: this.defaultRewardPerWin }
-                ];
-                break;
+        } else {
+            // Safety fallback in case no config is provided
+            this.machines = Array(4).fill(null).map(() => ({ true_probability: 0.5, reward: 2 }));
         }
     }
     
     // --- Public API for the Simulator ---
 
     /**
-     * THE FIX: This method was added to resolve the analysis mode bug.
      * The SimulationRunner needs this to know how many arms the agents should have.
      * @returns {number} The number of machines in the current environment.
      */
@@ -94,24 +62,43 @@ export class Environment {
         return this.machines ? this.machines.length : 0;
     }
     
-    setMachineConfig(config) {
-        this.machineConfig = config;
+    /**
+     * Receives the machine configurations from the main Simulator class.
+     * @param {Array<object>} primaryConfig - The initial configuration for the machines.
+     * @param {Array<object>|null} afterChangeConfig - The configuration after a non-stationary change.
+     */
+    setMachineConfig(primaryConfig, afterChangeConfig = null) {
+        this.machineConfig = primaryConfig;
+        this.machineConfigAfterChange = afterChangeConfig;
     }
 
+    /**
+     * Sets the identifier for the current scenario (e.g., 'C' for Restless).
+     * This is used to trigger dynamic, per-step environmental changes.
+     * @param {string} scenario - The scenario identifier.
+     */
     setScenario(scenario) {
         this.scenario = scenario;
-        this.reset();
     }
-
+    
+    /**
+     * Sets the maximum number of rounds for the simulation.
+     * @param {number} newMax - The new maximum round count.
+     */
     setMaxRounds(newMax) {
         this.initialState.maxRounds = newMax;
-        this.state.maxRounds = newMax;
     }
 
+    /**
+     * @returns {Array<number>} An array of the true probabilities for each machine.
+     */
     getMachineProbabilities() {
         return this.machines.map(m => m.true_probability);
     }
 
+    /**
+     * @returns {object} A copy of the current environment state.
+     */
     getState() {
         return { ...this.state };
     }
@@ -125,24 +112,20 @@ export class Environment {
         // --- Handle Environmental Shifts ---
 
         const changePoint = Math.floor(this.state.maxRounds / 2);
-        // Event triggers that happen ONCE per simulation
-        if (this.state.round === changePoint) {
-            if (this.scenario === 'B' || this.scenario === 'D') {
-                this._createMachines(); // The world changes!
-            }
+        // Event triggers that happen ONCE per simulation for sudden changes
+        if (this.state.round === changePoint && (this.scenario === 'B' || this.scenario === 'D')) {
+            this._createMachines(); // The world changes!
         }
         
-        // Events that happen on EVERY step for specific scenarios
+        // Events that happen on EVERY step for gradual changes
         if (this.scenario === 'C') { // Restless Bandits
             this.machines.forEach((machine, index) => {
-                // Only non-pulled arms drift
-                if (index !== action) {
-                    const noise = (Math.random() - 0.5) * 0.02; // Smaller, more frequent drift
+                if (index !== action) { // Only non-pulled arms drift
+                    const noise = (Math.random() - 0.5) * 0.02;
                     machine.true_probability = Math.max(0.05, Math.min(0.95, machine.true_probability + noise));
                 }
             });
         } else if (this.scenario === 'E') { // Fading Garden
-            // Find the current best and second-best arms
             let bestIndex = -1, secondBestIndex = -1;
             let maxProb = -1, secondMaxProb = -1;
             this.machines.forEach((m, i) => {
@@ -154,7 +137,6 @@ export class Environment {
                 }
             });
 
-            // If the best arm was pulled, it fades and the second-best improves
             if (action === bestIndex && bestIndex !== -1 && secondBestIndex !== -1) {
                 this.machines[bestIndex].true_probability -= 0.001;
                 this.machines[secondBestIndex].true_probability += 0.0005;
@@ -170,7 +152,9 @@ export class Environment {
         this.state.round++;
         this.state.money -= this.costPerPull;
 
-        const machine = this.machines[action];
+        // Ensure action is valid to prevent crashes from faulty agents
+        const machine = this.machines[action] || { true_probability: 0, reward: 0 };
+        
         let reward = 0;
         let win = false;
 
@@ -189,8 +173,8 @@ export class Environment {
      */
     reset() {
         this.state = { ...this.initialState };
-        this.state.maxRounds = this.initialState.maxRounds; // Ensure maxRounds is reset
-        this.cataclysmProbs = null; // Clear stored probabilities for scenario 'D'
-        this._createMachines(); // Initialize machines based on the starting conditions
+        this.state.maxRounds = this.initialState.maxRounds;
+        this.cataclysmProbs = null;
+        this._createMachines();
     }
 }

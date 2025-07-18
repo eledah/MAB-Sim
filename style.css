@@ -259,3 +259,43 @@ button:hover {
     color: #ccc;
     margin-top: 0.5rem;
 }
+
+.machine-info {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin-top: 0.5rem;
+    min-height: 1.2em;
+}
+
+/* --- ADDED FOR VISUALIZATION --- */
+.viz-container {
+    height: 20px;
+    width: 80%;
+    margin-top: 8px;
+    opacity: 0; /* Hidden by default */
+    transition: opacity 0.5s;
+}
+.viz-container.visible {
+    opacity: 1; /* Made visible by JS */
+}
+.viz-bar-wrapper {
+    display: flex;
+    width: 100%;
+    height: 10px;
+    background-color: #333;
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+.viz-bar {
+    height: 100%;
+    transition: width 0.3s ease-in-out;
+}
+.ucb-value-bar {
+    background-color: var(--accent-color);
+    z-index: 2;
+}
+.ucb-bonus-bar {
+    background-color: rgba(0, 170, 255, 0.4);
+    z-index: 1;
+}

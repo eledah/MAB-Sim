@@ -1,3 +1,5 @@
+// Agents.js
+
 // Base class for all agents
 class Agent {
     constructor(numMachines) {
@@ -16,7 +18,7 @@ class Agent {
 // --- STANDARD AGENTS ---
 
 export class RandomAgent extends Agent {
-    chooseAction() {
+    chooseAction(state) {
         return Math.floor(Math.random() * this.numMachines);
     }
 }
@@ -34,7 +36,7 @@ export class GreedyAgent extends Agent {
         this.next_action = 0;
     }
 
-    chooseAction() {
+    chooseAction(state) {
         if (this.exploration_phase) {
             const action = this.next_action;
             this.next_action++;
@@ -69,7 +71,7 @@ export class EpsilonGreedyAgent extends Agent {
         this.action_counts = Array(this.numMachines).fill(0);
     }
 
-    chooseAction() {
+    chooseAction(state) {
         if (Math.random() < this.epsilon) {
             return Math.floor(Math.random() * this.numMachines);
         } else {
@@ -104,7 +106,7 @@ export class DecayingEpsilonGreedyAgent extends EpsilonGreedyAgent {
 
     chooseAction(state) {
         this.epsilon = this.initialEpsilon / (1.0 + this.decayRate * state.round);
-        return super.chooseAction();
+        return super.chooseAction(state); // Pass state down
     }
 }
 
@@ -115,20 +117,21 @@ export class UCB1Agent extends Agent {
     }
 
     reset() {
-        this.q_values = Array(this.numMachines).fill(0);
+        this.reward_sums = Array(this.numMachines).fill(0); // RENAMED
         this.action_counts = Array(this.numMachines).fill(0);
     }
 
     chooseAction(state) {
         const total_pulls = state.round + 1;
 
+        // Ensure each machine is played at least once
         for (let i = 0; i < this.numMachines; i++) {
             if (this.action_counts[i] === 0) {
                 return i;
             }
         }
 
-        const ucb_scores = this.q_values.map((sum_reward, i) => {
+        const ucb_scores = this.reward_sums.map((sum_reward, i) => {
             const mean_reward = sum_reward / this.action_counts[i];
             const exploration_bonus = Math.sqrt((2 * Math.log(total_pulls)) / this.action_counts[i]);
             return mean_reward + exploration_bonus;
@@ -138,9 +141,25 @@ export class UCB1Agent extends Agent {
         return ucb_scores.indexOf(maxScore);
     }
 
+    /**
+     * NEW: Provides the individual components of the UCB calculation for visualization.
+     * @returns {Array<object>} An array of objects, each with mean and bonus properties.
+     */
+    getUCBComponents() {
+        const total_pulls = this.action_counts.reduce((a, b) => a + b, 0) + 1;
+        return this.reward_sums.map((sum_reward, i) => {
+            if (this.action_counts[i] === 0) {
+                return { mean: 0, bonus: Infinity };
+            }
+            const mean = sum_reward / this.action_counts[i];
+            const bonus = Math.sqrt((2 * Math.log(total_pulls)) / this.action_counts[i]);
+            return { mean, bonus };
+        });
+    }
+
     update(action, reward) {
         this.action_counts[action]++;
-        this.q_values[action] += (reward > 0 ? 1 : 0);
+        this.reward_sums[action] += reward; // FIXED: Add the actual reward value
     }
 }
 
@@ -155,6 +174,7 @@ export class ThompsonSamplingAgent extends Agent {
         this.betas = Array(this.numMachines).fill(1);
     }
 
+    // A simple Gamma sampler for the Beta distribution
     _sampleGamma(shape) {
         let sum = 0;
         for (let i = 0; i < shape; i++) {
@@ -163,19 +183,21 @@ export class ThompsonSamplingAgent extends Agent {
         return sum;
     }
 
+    // Generate a sample from a Beta(alpha, beta) distribution
     _sampleBeta(alpha, beta) {
         const sample_gamma_alpha = this._sampleGamma(alpha);
         const sample_gamma_beta = this._sampleGamma(beta);
         return sample_gamma_alpha / (sample_gamma_alpha + sample_gamma_beta);
     }
     
-    chooseAction() {
+    chooseAction(state) {
         const samples = this.alphas.map((alpha, i) => this._sampleBeta(alpha, this.betas[i]));
         const maxSample = Math.max(...samples);
         return samples.indexOf(maxSample);
     }
     
     update(action, reward) {
+        // Thompson Sampling works best with binary rewards (win/loss)
         if (reward > 0) {
             this.alphas[action]++;
         } else {

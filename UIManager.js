@@ -6,7 +6,7 @@ export class UIManager {
     constructor(containerElement, config) {
         this.container = containerElement;
         this.config = config;
-        this.numMachines = 4; // Or get from config if variable
+        this.numMachines = 4;
         
         this._createHTML();
         this._queryDOMElements();
@@ -60,6 +60,14 @@ export class UIManager {
                             <div class="machine-flair"></div>
                             <div class="machine">🎰</div>
                             <div class="machine-info"></div>
+                            
+                            <div class="viz-container">
+                                <div class="viz-bar-wrapper">
+                                    <div class="viz-bar ucb-value-bar"></div>
+                                    <div class="viz-bar ucb-bonus-bar"></div>
+                                </div>
+                            </div>
+
                             ${showPayoutInputs ? `
                                 <div class="payout-controls">
                                     <label>Payout %</label>
@@ -88,7 +96,6 @@ export class UIManager {
 
     _queryDOMElements() {
         this.wrapper = this.container.querySelector('.simulator-wrapper');
-        // Get references to all dynamic elements
         this.moneyEl = this.wrapper.querySelector('.current-money');
         this.roundEl = this.wrapper.querySelector('.current-round');
         this.machineContainers = this.wrapper.querySelectorAll('.machine-container');
@@ -105,9 +112,9 @@ export class UIManager {
         this.payoutInputs = this.wrapper.querySelectorAll('.payout-input');
         this.chartCanvas = this.wrapper.querySelector('.chart-container canvas');
         this.agentDescriptionEl = this.wrapper.querySelector('.agent-description');
+        this.vizContainers = this.wrapper.querySelectorAll('.viz-container');
     }
 
-    // This is key: The Simulator provides the handler functions
     addEventListeners(handlers) {
         this.startBtn.addEventListener('click', handlers.onStart);
         this.restartBtn.addEventListener('click', handlers.onReset);
@@ -131,8 +138,6 @@ export class UIManager {
         });
     }
 
-    // --- Public Methods to Control the UI ---
-
     reset(initialState, machineProbs) {
         this.updateStateDisplay(initialState);
         this.logList.innerHTML = '';
@@ -142,6 +147,7 @@ export class UIManager {
         this.startBtn.textContent = 'Start';
         this.startBtn.disabled = false;
         this.agentDescriptionEl.style.display = 'none';
+        this.hideUCBViz();
         
         this.machineContainers.forEach((container, index) => {
             container.querySelector('.machine').classList.remove('highlight');
@@ -152,16 +158,12 @@ export class UIManager {
     }
     
     getMode() {
-        if (this.config.showControls && this.agentSelect) {
-            return this.agentSelect.value;
-        }
+        if (this.config.showControls && this.agentSelect) return this.agentSelect.value;
         return this.config.mode || 'manual';
     }
 
     getScenario() {
-        if (this.config.showControls && this.scenarioSelect) {
-            return this.scenarioSelect.value;
-        }
+        if (this.config.showControls && this.scenarioSelect) return this.scenarioSelect.value;
         return this.config.environmentScenario;
     }
 
@@ -212,16 +214,11 @@ export class UIManager {
         });
     }
 
-    setButtonState(state) { // 'initial', 'running', 'paused', 'finished'
+    setButtonState(state) {
         switch(state) {
             case 'running':
                 this.startBtn.textContent = 'Pause';
-                // =================================================================
-                // THE FIX: Disable button during analysis, enable for single runs
-                // We'll pass a flag to handle this.
-                // For now, let's just make a simple fix.
-                // A better fix is in simulator.js's logic.
-                // =================================================================
+                this.startBtn.disabled = false;
                 break;
             case 'paused':
                 this.startBtn.textContent = 'Resume';
@@ -231,7 +228,7 @@ export class UIManager {
                 this.startBtn.textContent = 'Finished';
                 this.startBtn.disabled = true;
                 break;
-            case 'analysis-running': // New state for clarity
+            case 'analysis-running':
                 this.startBtn.textContent = 'Running...';
                 this.startBtn.disabled = true;
                 break;
@@ -251,18 +248,9 @@ export class UIManager {
         }
     }
 
-    showProgress() {
-        this.progressContainer.style.display = 'block';
-    }
-
-    updateProgress(percent, text) {
-        this.progressBar.style.width = `${percent}%`;
-        this.progressLabel.textContent = text;
-    }
-
-    hideProgress() {
-        this.progressContainer.style.display = 'none';
-    }
+    showProgress() { this.progressContainer.style.display = 'block'; }
+    updateProgress(percent, text) { this.progressBar.style.width = `${percent}%`; this.progressLabel.textContent = text; }
+    hideProgress() { this.progressContainer.style.display = 'none'; }
     
     displaySummaryTable(results, valueColumnName) {
         this.summaryTableContainer.querySelector('thead th:last-child').textContent = valueColumnName;
@@ -273,5 +261,26 @@ export class UIManager {
             row.insertCell(1).textContent = res.finalScore;
         });
         this.summaryTableContainer.style.display = 'block';
+    }
+
+    updateUCBViz(ucbComponents) {
+        this.vizContainers.forEach((container, i) => {
+            container.classList.add('visible');
+            const valueBar = container.querySelector('.ucb-value-bar');
+            const bonusBar = container.querySelector('.ucb-bonus-bar');
+            if (!valueBar || !bonusBar) return;
+
+            const components = ucbComponents[i];
+            const maxValue = 5.0; // Normalize for visualization, assuming mean+bonus won't exceed this.
+            const valueWidth = Math.min(100, ((components.mean * 0.5) / maxValue) * 100);
+            const bonusWidth = Math.min(100 - valueWidth, (components.bonus / maxValue) * 100);
+
+            valueBar.style.width = `${valueWidth}%`;
+            bonusBar.style.width = `${bonusWidth}%`;
+        });
+    }
+
+    hideUCBViz() {
+        this.vizContainers.forEach(container => container.classList.remove('visible'));
     }
 }
