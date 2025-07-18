@@ -14,6 +14,11 @@ export class Environment {
         this.reset();
     }
 
+    /**
+     * Creates or updates the machine probabilities based on the current scenario and round.
+     * This is the core logic for all the different environmental challenges.
+     * @private
+     */
     _createMachines() {
         const changePoint = Math.floor(this.state.maxRounds / 2);
 
@@ -78,6 +83,17 @@ export class Environment {
         }
     }
     
+    // --- Public API for the Simulator ---
+
+    /**
+     * THE FIX: This method was added to resolve the analysis mode bug.
+     * The SimulationRunner needs this to know how many arms the agents should have.
+     * @returns {number} The number of machines in the current environment.
+     */
+    getNumMachines() {
+        return this.machines ? this.machines.length : 0;
+    }
+    
     setMachineConfig(config) {
         this.machineConfig = config;
     }
@@ -100,7 +116,14 @@ export class Environment {
         return { ...this.state };
     }
 
+    /**
+     * The core interaction logic. An agent performs an action, and the environment returns the result.
+     * @param {number} action - The index of the machine to pull.
+     * @returns {{reward: number, newState: object, win: boolean, done: boolean}} The outcome of the action.
+     */
     step(action) {
+        // --- Handle Environmental Shifts ---
+
         const changePoint = Math.floor(this.state.maxRounds / 2);
         // Event triggers that happen ONCE per simulation
         if (this.state.round === changePoint) {
@@ -109,34 +132,36 @@ export class Environment {
             }
         }
         
-        // Events that happen on EVERY step
+        // Events that happen on EVERY step for specific scenarios
         if (this.scenario === 'C') { // Restless Bandits
             this.machines.forEach((machine, index) => {
+                // Only non-pulled arms drift
                 if (index !== action) {
                     const noise = (Math.random() - 0.5) * 0.02; // Smaller, more frequent drift
                     machine.true_probability = Math.max(0.05, Math.min(0.95, machine.true_probability + noise));
                 }
             });
         } else if (this.scenario === 'E') { // Fading Garden
+            // Find the current best and second-best arms
             let bestIndex = -1, secondBestIndex = -1;
             let maxProb = -1, secondMaxProb = -1;
             this.machines.forEach((m, i) => {
                 if (m.true_probability > maxProb) {
-                    secondMaxProb = maxProb;
-                    secondBestIndex = bestIndex;
-                    maxProb = m.true_probability;
-                    bestIndex = i;
+                    secondMaxProb = maxProb; secondBestIndex = bestIndex;
+                    maxProb = m.true_probability; bestIndex = i;
                 } else if (m.true_probability > secondMaxProb) {
-                    secondMaxProb = m.true_probability;
-                    secondBestIndex = i;
+                    secondMaxProb = m.true_probability; secondBestIndex = i;
                 }
             });
 
+            // If the best arm was pulled, it fades and the second-best improves
             if (action === bestIndex && bestIndex !== -1 && secondBestIndex !== -1) {
                 this.machines[bestIndex].true_probability -= 0.001;
                 this.machines[secondBestIndex].true_probability += 0.0005;
             }
         }
+
+        // --- Execute the Action and Calculate Reward ---
 
         if (this.state.money <= 0 || this.state.round >= this.state.maxRounds) {
             return { reward: 0, newState: this.state, win: false, done: true };
@@ -159,10 +184,13 @@ export class Environment {
         return { reward, newState: this.state, win, done };
     }
 
+    /**
+     * Resets the environment to its initial state for a new simulation run.
+     */
     reset() {
         this.state = { ...this.initialState };
-        this.state.maxRounds = this.initialState.maxRounds;
-        this.cataclysmProbs = null;
-        this._createMachines();
+        this.state.maxRounds = this.initialState.maxRounds; // Ensure maxRounds is reset
+        this.cataclysmProbs = null; // Clear stored probabilities for scenario 'D'
+        this._createMachines(); // Initialize machines based on the starting conditions
     }
 }
