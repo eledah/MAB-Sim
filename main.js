@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressContainer = document.getElementById('progress-container');
     const progressBar = document.getElementById('progress-bar');
     const progressLabel = document.getElementById('progress-label');
-    const agentDescriptionEl = null; // This element is removed
+    const agentDescriptionEl = document.getElementById('agent-description');
 
     let chart;
     const chartColors = {
@@ -53,7 +53,14 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: 'Thompson Sampling', create: () => new ThompsonSamplingAgent(4) },
     ];
     
-    const agentDescriptions = {}; // This is now in descriptions.md
+    const agentDescriptions = {
+        random: '<h3>ایده اصلی: انتخاب کاملاً تصادفی</h3><p>این ایجنت هیچ استراتژی خاصی ندارد و در هر دور، یک ماشین را به صورت کاملاً شانسی و تصادفی انتخاب می‌کند. این روش به عنوان یک معیار پایه برای مقایسه عملکرد سایر ایجنت‌ها استفاده می‌شود.</p>',
+        greedy: '<h3>ایده اصلی: بهره‌برداری محض</h3><p>پس از یک دور امتحان کردن همه‌ی ماشین‌ها، فقط و فقط به بهترین ماشینی که تا آن لحظه دیده است می‌چسبد. این استراتژی در محیط‌های ثابت سریع است اما قادر به وفق پیدا کردن با تغییرات نیست و ممکن است در یک انتخاب بد اولیه گیر کند.</p>',
+        epsilonGreedy: '<h3>ایده اصلی: تعادل بین بهره‌برداری و کشف</h3><p>در اکثر مواقع (با احتمال ۱ منهای اپسیلون) بهترین ماشین را انتخاب می‌کند، اما گاهی اوقات (با احتمال اپسیلون) یک ماشین تصادفی را برای «کشف» انتخاب می‌کند. این کار به آن اجازه می‌دهد تا از گیر افتادن در یک انتخاب بد اولیه جلوگیری کند.</p>',
+        decayingEpsilonGreedy: '<h3>ایده اصلی: کشف هوشمند در طول زمان</h3><p>یک نسخه هوشمندتر از اپسیلون-حریص. در ابتدا زیاد کشف می‌کند (اپسیلون بالا) و به مرور زمان که اطلاعات بیشتری کسب می‌کند، کمتر کشف کرده و بیشتر بهره‌برداری می‌کند (اپسیلون به تدریج کاهش می‌یابد).</p>',
+        ucb1: '<h3>ایده اصلی: خوش‌بینی در برابر عدم قطعیت</h3><p>این الگوریتم ماشینی را انتخاب می‌کند که هم پتانسیل بالایی برای برد دارد و هم کمتر امتحان شده است. این کار باعث می‌شود تا عدم قطعیت را به شکل مؤثری مدیریت کند و به صورت هوشمندانه به سمت ماشین‌های ناشناخته ولی امیدوارکننده برود.</p>',
+        thompson: '<h3>ایده اصلی: تصمیم‌گیری بر اساس باور</h3><p>برای هر ماشین یک توزیع احتمال از نرخ برد واقعی آن نگهداری می‌کند. در هر دور، از «باور» خود یک نمونه می‌گیرد و بهترین نمونه را انتخاب می‌کند. این روش بسیار قدرتمند و کارآمد است و به سرعت با بهترین ماشین منطبق می‌شود.</p>'
+    };
 
     // --- CHARTING UTILITIES ---
     function initChart(chartConfig) {
@@ -170,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
         summaryTableContainer.style.display = 'none';
         progressContainer.style.display = 'none';
         progressBar.style.width = '0%';
-        if (agentDescriptionEl) agentDescriptionEl.style.display = 'none';
+        agentDescriptionEl.style.display = 'none';
 
         machineHistory = Array(4).fill(null).map(() => ({ wins: 0, pulls: 0 }));
         machineContainers.forEach((container, index) => {
@@ -255,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function runComparativeSimulation() {
         reset();
-        if (agentDescriptionEl) agentDescriptionEl.style.display = 'none';
+        agentDescriptionEl.style.display = 'none';
         environment.setMaxRounds(500);
         addLog('Starting comparative simulation (500 rounds)...');
         toggleControls(false);
@@ -301,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function runMonteCarloSimulation() {
         reset();
-        if (agentDescriptionEl) agentDescriptionEl.style.display = 'none';
+        agentDescriptionEl.style.display = 'none';
         environment.setMaxRounds(500);
         addLog(`Starting Monte Carlo analysis (${MONTE_CARLO_RUNS} runs)...`);
         toggleControls(false);
@@ -398,10 +405,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const mode = agentSelect.value;
         toggleGameBoard(false);
         
-        if (agentDescriptionEl && agentDescriptions[mode]) {
+        if (agentDescriptions[mode]) {
             agentDescriptionEl.innerHTML = agentDescriptions[mode];
             agentDescriptionEl.style.display = 'block';
-        } else if (agentDescriptionEl) {
+        } else {
             agentDescriptionEl.style.display = 'none';
         }
 
@@ -418,7 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
             default: // All single-agent modes
                 if (!simulationRunning) {
                     reset();
-                    if (agentDescriptionEl && agentDescriptions[mode]) {
+                    if (agentDescriptions[mode]) {
                         agentDescriptionEl.innerHTML = agentDescriptions[mode];
                         agentDescriptionEl.style.display = 'block';
                     }
