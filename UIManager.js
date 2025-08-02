@@ -46,7 +46,7 @@ export class UIManager {
             <div class="simulator-wrapper">
                 <div class="sim-header">
                     <h2>${this.config.name}</h2>
-                    <p>${this.config.description}</p>
+                    <p></p>
                 </div>
                 ${showControls ? `<div class="controls">${controlsHTML}</div>` : ''}
                 <div class="sim-actions">
@@ -89,7 +89,6 @@ export class UIManager {
                     <p>Round: <span class="current-round">0</span></p>
                 </div>
                 <div class="chart-container"><canvas></canvas></div>
-                <div class="agent-description"></div>
                 <div class="log-area"><ul></ul></div>
                 <div class="summary-table-container">
                     <table>
@@ -118,7 +117,7 @@ export class UIManager {
         this.scenarioSelect = this.wrapper.querySelector('.scenario-select');
         this.payoutInputs = this.wrapper.querySelectorAll('.payout-input');
         this.chartCanvas = this.wrapper.querySelector('.chart-container canvas');
-        this.agentDescriptionEl = this.wrapper.querySelector('.agent-description');
+        this.agentDescriptionEl = null; // This element is removed
         this.vizContainers = this.wrapper.querySelectorAll('.viz-container');
     }
 
@@ -153,7 +152,7 @@ export class UIManager {
         this.progressBar.style.width = '0%';
         this.startBtn.textContent = 'Start';
         this.startBtn.disabled = false;
-        this.agentDescriptionEl.style.display = 'none';
+        if (this.agentDescriptionEl) this.agentDescriptionEl.style.display = 'none';
         this.hideViz();
         
         this.machineContainers.forEach((container, index) => {
@@ -247,12 +246,7 @@ export class UIManager {
     }
 
     displayAgentDescription(descriptionHTML) {
-        if (descriptionHTML) {
-            this.agentDescriptionEl.innerHTML = descriptionHTML;
-            this.agentDescriptionEl.style.display = 'block';
-        } else {
-            this.agentDescriptionEl.style.display = 'none';
-        }
+        // This function is now obsolete as descriptions are external.
     }
 
     showProgress() { this.progressContainer.style.display = 'block'; }
