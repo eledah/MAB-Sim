@@ -93,7 +93,6 @@ export class Simulator {
             this.reset();
             this.agent = agentInfo.create(this.numMachines);
             this.chartManager.renderSingleRun(agentInfo.name, this.environment.getState());
-            this.ui.displayAgentDescription(AGENT_DESCRIPTIONS[agentKey]);
             this.ui.hideViz(); // Hide all visualizations by default
             
             this.simulationRunning = true;
