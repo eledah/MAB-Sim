@@ -46,10 +46,6 @@ export class UIManager {
             <div class="simulator-wrapper">
                 <div class="sim-header">
                     <h2>${this.config.name}</h2>
-<<<<<<< HEAD
-=======
-                    <p>${this.config.description}</p>
->>>>>>> parent of d23ea62 (No Description)
                 </div>
                 ${showControls ? `<div class="controls">${controlsHTML}</div>` : ''}
                 <div class="sim-actions">
@@ -92,8 +88,6 @@ export class UIManager {
                     <p>Round: <span class="current-round">0</span></p>
                 </div>
                 <div class="chart-container"><canvas></canvas></div>
-                <div class="agent-description"></div>
-                <div class="log-area"><ul></ul></div>
                 <div class="summary-table-container">
                     <table>
                         <thead><tr><th>Agent</th><th>Final Score</th></tr></thead>
@@ -109,7 +103,6 @@ export class UIManager {
         this.moneyEl = this.wrapper.querySelector('.current-money');
         this.roundEl = this.wrapper.querySelector('.current-round');
         this.machineContainers = this.wrapper.querySelectorAll('.machine-container');
-        this.logList = this.wrapper.querySelector('.log-area ul');
         this.summaryTableContainer = this.wrapper.querySelector('.summary-table-container');
         this.summaryTableBody = this.wrapper.querySelector('.summary-table-container tbody');
         this.progressContainer = this.wrapper.querySelector('.progress-container');
@@ -121,7 +114,6 @@ export class UIManager {
         this.scenarioSelect = this.wrapper.querySelector('.scenario-select');
         this.payoutInputs = this.wrapper.querySelectorAll('.payout-input');
         this.chartCanvas = this.wrapper.querySelector('.chart-container canvas');
-        this.agentDescriptionEl = this.wrapper.querySelector('.agent-description');
         this.vizContainers = this.wrapper.querySelectorAll('.viz-container');
     }
 
@@ -150,13 +142,11 @@ export class UIManager {
 
     reset(initialState, machineProbs) {
         this.updateStateDisplay(initialState);
-        this.logList.innerHTML = '';
         this.summaryTableContainer.style.display = 'none';
         this.progressContainer.style.display = 'none';
         this.progressBar.style.width = '0%';
         this.startBtn.textContent = 'Start';
         this.startBtn.disabled = false;
-        this.agentDescriptionEl.style.display = 'none';
         this.hideViz();
         
         this.machineContainers.forEach((container, index) => {
@@ -246,15 +236,6 @@ export class UIManager {
             default:
                 this.startBtn.textContent = 'Start';
                 this.startBtn.disabled = false;
-        }
-    }
-
-    displayAgentDescription(descriptionHTML) {
-        if (descriptionHTML) {
-            this.agentDescriptionEl.innerHTML = descriptionHTML;
-            this.agentDescriptionEl.style.display = 'block';
-        } else {
-            this.agentDescriptionEl.style.display = 'none';
         }
     }
 
