@@ -46,7 +46,6 @@ export class UIManager {
             <div class="simulator-wrapper">
                 <div class="sim-header">
                     <h2>${this.config.name}</h2>
-                    <p></p>
                 </div>
                 ${showControls ? `<div class="controls">${controlsHTML}</div>` : ''}
                 <div class="sim-actions">
