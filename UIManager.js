@@ -181,15 +181,16 @@ export class UIManager {
     updateMachineInfo(machineId, history, trueProb) {
         const infoEl = this.machineContainers[machineId].querySelector('.machine-info');
         if (!infoEl) return;
-        
+
         const { wins, pulls } = history;
+        const losses = pulls - wins;
         const winRate = pulls > 0 ? `${((wins / pulls) * 100).toFixed(0)}%` : `0%`;
-        let historyText = `(${wins}/${pulls}) | Est: ${winRate}`;
+        let html = `<span class="wins">${wins}</span> | <span class="losses">${losses}</span><br><span class="estimate">${winRate}</span>`;
 
         if (this.config.showProbabilities) {
-            historyText = `True: ${(trueProb * 100).toFixed(0)}% | Est: ${winRate}`;
+            html = `<span class="wins">${wins}</span> | <span class="losses">${losses}</span><br><span class="estimate">True: ${(trueProb * 100).toFixed(0)}% | Est: ${winRate}</span>`;
         }
-        infoEl.textContent = historyText;
+        infoEl.innerHTML = html;
     }
     
     showFlair(machineId, win, flairText) {
