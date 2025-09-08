@@ -28,8 +28,7 @@ export const scenarios = {
     'scenario-2': {
         name: 'Random Agent (True Payout Displayed)', mode: 'single-agent', agentToRun: 'random', showProbabilities: true,
         description: 'The Random Agent selects machines with no strategy. Notice how its performance compares to the true probabilities, now visible to you.',
-        machineConfig: stationaryConfig,
-        theme: { name: 'Casino Classics', icons: ['🎰','🎲','🎯','🎳'] }
+        machineConfig: stationaryConfig
     },
     'scenario-3': {
         name: 'The Greedy Agent', mode: 'single-agent', agentToRun: 'greedy', showProbabilities: true,
@@ -49,8 +48,7 @@ export const scenarios = {
     'scenario-6': {
         name: 'UCB1 Agent', mode: 'single-agent', agentToRun: 'ucb1',
         description: 'UCB1 intelligently explores by preferring machines that are both promising and have not been tried many times (high uncertainty).',
-        environmentScenario: 'A', machineConfig: stationaryConfig,
-        theme: { name: 'Lab Metrics', icons: ['📊','📈','📉','📐'] }
+        environmentScenario: 'A', machineConfig: stationaryConfig
     },
     'scenario-7': {
         name: 'Thompson Sampling Agent', mode: 'single-agent', agentToRun: 'thompson',
@@ -80,8 +78,7 @@ export const scenarios = {
     'scenario-12': {
         name: 'The Treasure Hunter (High Risk, High Reward)', mode: 'monte-carlo', maxRounds: 500, numMonteCarloRuns: 100, showProbabilities: true,
         description: 'Three machines have small, reliable payouts, but one is a "treasure chest" with a low chance of a massive reward. Which strategy is brave enough to find it?',
-        machineConfig: [ { prob: 0.5, reward: 2 }, { prob: 0.6, reward: 2 }, { prob: 0.05, reward: 50 }, { prob: 0.4, reward: 2 } ],
-        theme: { name: 'Treasure Hunt', icons: ['💰','💎','🪙','🏺'] }
+        machineConfig: [ { prob: 0.5, reward: 2 }, { prob: 0.6, reward: 2 }, { prob: 0.05, reward: 50 }, { prob: 0.4, reward: 2 } ]
     },
     'scenario-13': {
         name: '"The Cataclysm" (Sudden, Drastic Change)', mode: 'monte-carlo', maxRounds: 500, numMonteCarloRuns: 100,

@@ -17,10 +17,6 @@ export class Simulator {
         this.simulationInterval = null;
         this.machineHistory = [];
 
-        // Thinking phase control (pre-decision visualization)
-        this._defaultThinkingTicks = typeof config.thinkingTicks === 'number' ? config.thinkingTicks : 6;
-        this._thinkingTicks = 0;
-
         this.ui = new UIManager(containerElement, config);
         this.chartManager = new ChartManager(this.ui.chartCanvas);
         this.environment = new Environment();
@@ -38,9 +34,6 @@ export class Simulator {
         if (this.simulationInterval) clearInterval(this.simulationInterval);
         this.simulationRunning = false;
 
-        // Reset thinking phase counter
-        this._thinkingTicks = 0;
-
         this.environment.setMaxRounds(this.config.maxRounds || 100);
         this.environment.setScenario(this.ui.getScenario());
         this.environment.setMachineConfig(
@@ -56,7 +49,6 @@ export class Simulator {
 
         this.ui.reset(initialState, this.environment.getMachineProbabilities());
         this.chartManager.renderSingleRun('Manual', initialState);
-        this.ui.setThinkingState(false);
         this.machineHistory.forEach((_, i) => this.ui.updateMachineInfo(i, this.machineHistory[i], this.environment.getMachineProbabilities()[i]));
     }
 
@@ -102,9 +94,6 @@ export class Simulator {
             this.agent = agentInfo.create(this.numMachines);
             this.chartManager.renderSingleRun(agentInfo.name, this.environment.getState());
             this.ui.hideViz(); // Hide all visualizations by default
-
-            // Initialize thinking ticks before the first decision
-            this._thinkingTicks = this._defaultThinkingTicks;
             
             this.simulationRunning = true;
             this.ui.setButtonState('running');
@@ -116,31 +105,27 @@ export class Simulator {
         if (!this.agent) return;
         const currentState = this.environment.getState();
 
-        // Pre-decision "thinking" visualization phase
-        if (this._thinkingTicks > 0) {
-            this.ui.showAgentThinking(this.agent, currentState, { phase: 'pre' });
-            this._thinkingTicks--;
-            return; // wait before taking action
-        }
-
-        // Decision and environment step
         const action = this.agent.chooseAction(currentState);
         const { newState, win, done, reward } = this.environment.step(action);
         this.agent.update(action, reward);
         
         this._updateAfterStep(action, win, reward, newState);
 
-        // Post-decision visualization update (kept for continuity)
-        this.ui.showAgentThinking(this.agent, newState, { phase: 'post' });
+        // Check which agent is running and call the appropriate viz function
+        if (this.agent instanceof Agents.UCB1Agent) {
+            this.ui.updateUCBViz(this.agent.getUCBComponents());
+        } else if (this.agent instanceof Agents.ThompsonSamplingAgent) {
+            this.ui.updateThompsonViz(this.agent.getBetaParameters());
+        } else {
+            // Hide viz for agents that don't have one (Greedy, Random, etc.)
+            this.ui.hideViz();
+        }
 
         if (done) {
             clearInterval(this.simulationInterval);
             this.simulationRunning = false;
             this.ui.setButtonState('finished');
             this.ui.clearHighlights();
-        } else {
-            // Reset thinking ticks for the next round
-            this._thinkingTicks = this._defaultThinkingTicks;
         }
     }
 

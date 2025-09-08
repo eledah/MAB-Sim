@@ -46,7 +46,6 @@ export class UIManager {
             <div class="simulator-wrapper">
                 <div class="sim-header">
                     <h2>${this.config.name}</h2>
-                    <div class="epsilon-thinking"></div>
                 </div>
                 ${showControls ? `<div class="controls">${controlsHTML}</div>` : ''}
                 <div class="sim-actions">
@@ -58,7 +57,7 @@ export class UIManager {
                     ${[...Array(this.numMachines)].map((_, i) => `
                         <div class="machine-container" data-machine-id="${i}">
                             <div class="machine-flair"></div>
-                            <div class="machine">${(this.config.theme && this.config.theme.icons && this.config.theme.icons[i]) ? this.config.theme.icons[i] : '🎰'}</div>
+                            <div class="machine">🎰</div>
                             <div class="machine-info"></div>
                             
                             <div class="viz-container">
@@ -109,7 +108,6 @@ export class UIManager {
         this.progressContainer = this.wrapper.querySelector('.progress-container');
         this.progressBar = this.wrapper.querySelector('.progress-bar');
         this.progressLabel = this.wrapper.querySelector('.progress-label');
-        this.epsilonThinkingEl = this.wrapper.querySelector('.epsilon-thinking');
         this.startBtn = this.wrapper.querySelector('.start-sim-btn');
         this.restartBtn = this.wrapper.querySelector('.restart-btn');
         this.agentSelect = this.wrapper.querySelector('.agent-select');
@@ -150,8 +148,6 @@ export class UIManager {
         this.startBtn.textContent = 'Start';
         this.startBtn.disabled = false;
         this.hideViz();
-        this.setThinkingState(false);
-        this.hideEpsilonThinking();
         
         this.machineContainers.forEach((container, index) => {
             container.querySelector('.machine').classList.remove('highlight');
@@ -314,94 +310,6 @@ export class UIManager {
 
             path.setAttribute('d', pathData);
         });
-    }
-
-    /**
-     * Shows the appropriate pre-decision "thinking" visualization for the given agent.
-     * Falls back to hiding visualizations for simple agents.
-     * @param {object} agent - The agent instance (duck-typed for viz capabilities)
-     * @param {object} state - Current environment state (optional)
-     * @param {{phase?: 'pre'|'post'}} options - Phase control for toggling CSS states
-     */
-    showAgentThinking(agent, state, options = {}) {
-        // Optional wrapper state for future CSS effects (e.g., dimming, pulse)
-        if (options.phase === 'pre') {
-            this.setThinkingState(true);
-        } else if (options.phase === 'post') {
-            this.setThinkingState(false);
-        }
-
-        // Prefer capability detection over class checks to avoid coupling UI to agent classes
-        if (agent && typeof agent.getUCBComponents === 'function') {
-            try {
-                this.updateUCBViz(agent.getUCBComponents());
-            } catch {
-                this.hideViz();
-            }
-            this.hideEpsilonThinking();
-            return;
-        }
-
-        if (agent && typeof agent.getBetaParameters === 'function') {
-            try {
-                this.updateThompsonViz(agent.getBetaParameters());
-            } catch {
-                this.hideViz();
-            }
-            this.hideEpsilonThinking();
-            return;
-        }
-
-        // Epsilon-based agents (Epsilon-Greedy / Decaying Epsilon-Greedy)
-        if (agent && (typeof agent.epsilon === 'number' || (typeof agent.initialEpsilon === 'number' && typeof agent.decayRate === 'number'))) {
-            let eps = null;
-            if (typeof agent.initialEpsilon === 'number' && typeof agent.decayRate === 'number' && state && typeof state.round === 'number') {
-                eps = agent.initialEpsilon / (1.0 + agent.decayRate * state.round);
-            } else if (typeof agent.epsilon === 'number') {
-                eps = agent.epsilon;
-            }
-            if (typeof eps === 'number' && isFinite(eps)) {
-                eps = Math.max(0, Math.min(1, eps));
-                const explorePct = Math.round(eps * 100);
-                const exploitPct = 100 - explorePct;
-                this.setEpsilonThinking(`ε ≈ ${explorePct}% · Explore / ${exploitPct}% · Exploit`);
-            } else {
-                this.setEpsilonThinking(`ε-adaptive decision`);
-            }
-            // No per-arm viz for epsilon agents
-            this.hideViz();
-            return;
-        }
-
-        // Default: hide all specialized visualizations
-        this.hideViz();
-        this.hideEpsilonThinking();
-    }
-
-    /**
-     * Toggle a CSS class on the wrapper to enable/disable global "thinking" effects.
-     */
-    setThinkingState(active) {
-        if (!this.wrapper) return;
-        this.wrapper.classList.toggle('thinking', !!active);
-    }
-
-    /**
-     * Update the epsilon "thought bubble" text and make it visible.
-     */
-    setEpsilonThinking(text) {
-        if (!this.epsilonThinkingEl) return;
-        this.epsilonThinkingEl.textContent = text || '';
-        this.epsilonThinkingEl.style.display = text ? 'inline-block' : 'none';
-    }
-
-    /**
-     * Hide the epsilon "thought bubble".
-     */
-    hideEpsilonThinking() {
-        if (!this.epsilonThinkingEl) return;
-        this.epsilonThinkingEl.style.display = 'none';
-        this.epsilonThinkingEl.textContent = '';
     }
 
     hideViz() {
