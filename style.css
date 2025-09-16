@@ -116,7 +116,7 @@ button:hover {
 }
 
 .game-board {
-    display: flex;
+    display: flex !important;
     justify-content: space-around;
     margin: 2rem 0;
     text-align: center;
@@ -132,6 +132,8 @@ button:hover {
     border-radius: 8px;
     border: 1px solid var(--border-color);
     box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    width: 20%;
+    max-width: 150px;
 }
 
 .machine {

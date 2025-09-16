@@ -77,7 +77,8 @@ export class Simulator {
             const numRuns = isMonteCarlo ? (this.config.numMonteCarloRuns || 100) : 1;
             const maxRounds = this.config.maxRounds || 500;
             
-            const results = await runAnalysis(AGENT_CONSTRUCTORS, this.environment, maxRounds, isMonteCarlo, numRuns, 
+            const selectedAgents = this.ui.getSelectedAgents();
+            const results = await runAnalysis(selectedAgents, this.environment, maxRounds, isMonteCarlo, numRuns,
                 (progress, text) => this.ui.updateProgress(progress, text)
             );
 

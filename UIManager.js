@@ -7,9 +7,10 @@ export class UIManager {
         this.container = containerElement;
         this.config = config;
         this.numMachines = 4;
-        
+
         this._createHTML();
         this._queryDOMElements();
+        this.updateVisibility();
     }
 
     _createHTML() {
@@ -42,6 +43,20 @@ export class UIManager {
             </div>
         `;
 
+        // Add agent selection checkboxes for analysis modes
+        if (showControls) {
+            controlsHTML += `
+                <div class="agent-selection" style="display: none;">
+                    <label>Select Agents:</label>
+                    <div class="agent-checkboxes">
+                        ${AGENT_CONSTRUCTORS.map(a => `
+                            <label><input type="checkbox" value="${a.key}" checked> ${a.name}</label>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
         this.container.innerHTML = `
             <div class="simulator-wrapper">
                 <div class="sim-header">
@@ -59,7 +74,7 @@ export class UIManager {
                             <div class="machine-flair"></div>
                             <div class="machine">🎰</div>
                             <div class="machine-info"></div>
-                            
+
                             <div class="viz-container">
                                 <div class="ucb-viz">
                                     <div class="viz-bar-wrapper">
@@ -115,6 +130,24 @@ export class UIManager {
         this.payoutInputs = this.wrapper.querySelectorAll('.payout-input');
         this.chartCanvas = this.wrapper.querySelector('.chart-container canvas');
         this.vizContainers = this.wrapper.querySelectorAll('.viz-container');
+        this.uiFeedback = this.wrapper.querySelector('.ui-feedback');
+        this.gameBoard = this.wrapper.querySelector('.game-board');
+    }
+
+    updateVisibility() {
+        const mode = this.getMode();
+        const isMonteCarlo = mode === 'monte-carlo';
+        const isAnalysis = mode === 'compare-all' || mode === 'monte-carlo';
+
+        if (this.gameBoard) {
+            this.gameBoard.style.display = isMonteCarlo ? 'none' : 'block';
+        }
+        if (this.uiFeedback) {
+            this.uiFeedback.style.display = isMonteCarlo ? 'none' : 'block';
+        }
+        if (this.agentSelection) {
+            this.agentSelection.style.display = isAnalysis ? 'block' : 'none';
+        }
     }
 
     addEventListeners(handlers) {
@@ -131,13 +164,19 @@ export class UIManager {
                 input.addEventListener('change', handlers.onReset);
             });
         }
+
+        if (this.config.showControls && this.agentSelect) {
+            this.agentSelect.addEventListener('change', () => this.updateVisibility());
+        }
         
-        this.machineContainers.forEach(mc => {
-            mc.addEventListener('click', (e) => {
-                const machineId = parseInt(e.currentTarget.dataset.machineId);
-                handlers.onMachineClick(machineId);
+        if (this.machineContainers.length > 0) {
+            this.machineContainers.forEach(mc => {
+                mc.addEventListener('click', (e) => {
+                    const machineId = parseInt(e.currentTarget.dataset.machineId);
+                    handlers.onMachineClick(machineId);
+                });
             });
-        });
+        }
     }
 
     reset(initialState, machineProbs) {
@@ -149,12 +188,14 @@ export class UIManager {
         this.startBtn.disabled = false;
         this.hideViz();
         
-        this.machineContainers.forEach((container, index) => {
-            container.querySelector('.machine').classList.remove('highlight');
-            if (this.config.showPayoutInputs) {
-                 container.querySelector('.payout-input').value = (machineProbs[index] * 100).toFixed(0);
-            }
-        });
+        if (this.machineContainers.length > 0) {
+            this.machineContainers.forEach((container, index) => {
+                container.querySelector('.machine').classList.remove('highlight');
+                if (this.config.showPayoutInputs) {
+                     container.querySelector('.payout-input').value = (machineProbs[index] * 100).toFixed(0);
+                }
+            });
+        }
     }
     
     getMode() {
@@ -171,6 +212,14 @@ export class UIManager {
         if (!this.config.showPayoutInputs) return null;
         const customProbs = Array.from(this.payoutInputs).map(input => parseFloat(input.value) / 100);
         return customProbs.map(p => ({ prob: p }));
+    }
+
+    getSelectedAgents() {
+        if (!this.agentCheckboxes) return AGENT_CONSTRUCTORS;
+        const selectedKeys = Array.from(this.agentCheckboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+        return AGENT_CONSTRUCTORS.filter(agent => selectedKeys.includes(agent.key));
     }
     
     updateStateDisplay(state) {
@@ -194,6 +243,7 @@ export class UIManager {
     }
     
     showFlair(machineId, win, flairText) {
+        if (this.machineContainers.length === 0) return;
         const flairEl = this.machineContainers[machineId].querySelector('.machine-flair');
         flairEl.textContent = flairText;
         flairEl.className = `machine-flair ${win ? 'win' : 'loss'}`;
@@ -210,6 +260,7 @@ export class UIManager {
     }
 
     clearHighlights() {
+        if (this.machineContainers.length === 0) return;
          this.machineContainers.forEach(container => {
             container.querySelector('.machine').classList.remove('highlight');
         });
@@ -271,6 +322,7 @@ export class UIManager {
     }
 
     updateThompsonViz(betaParams) {
+        if (this.vizContainers.length === 0) return;
         const { alphas, betas } = betaParams;
         const numPoints = 30;
         const svgWidth = 100;
