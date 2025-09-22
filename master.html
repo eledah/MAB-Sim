@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -17,10 +18,19 @@
         body {
             font-family: 'Vazirmatn', sans-serif;
             background: #1a1a1a;
+            background-image:
+                radial-gradient(circle at 1px 1px, rgba(255,255,255,.05) 1px, transparent 0);
+            background-size: 20px 20px;
             color: #e2e2e2;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .main-content {
@@ -33,11 +43,15 @@
         .description-section {
             flex: 1;
             background: #2a2a2a;
+            background-image:
+                radial-gradient(circle at 2px 2px, rgba(255,255,255,.03) 1px, transparent 0);
+            background-size: 15px 15px;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             padding: 2rem;
             overflow-y: auto;
             max-height: calc(100vh - 100px);
+            transition: all 0.3s ease;
         }
 
         .description-section h3 {
@@ -47,6 +61,14 @@
             margin-bottom: 1rem;
             border-bottom: 2px solid #667eea;
             padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .description-section h3 i {
+            color: #667eea;
         }
 
         .description-section p {
@@ -54,6 +76,7 @@
             color: #cccccc;
             margin-bottom: 1rem;
             font-size: 1rem;
+            transition: color 0.3s ease;
         }
 
         .simulation-section {
@@ -64,6 +87,7 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            transition: all 0.3s ease;
         }
 
         .simulation-header {
@@ -77,6 +101,15 @@
             color: #e2e2e2;
             font-size: 1.2rem;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .simulation-header h2 i {
+            color: #667eea;
         }
 
         .iframe-container {
@@ -89,6 +122,7 @@
             height: 100%;
             border: none;
             border-radius: 0 0 15px 15px;
+            transition: opacity 0.3s ease;
         }
 
         .navigation {
@@ -101,26 +135,28 @@
         }
 
         .nav-btn {
-            background: #333;
+            background: none;
             border: none;
             border-radius: 50%;
-            width: 60px;
-            height: 60px;
+            width: 40px;
+            height: 40px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
-            color: #667eea;
+            font-size: 1rem;
+            color: #666;
             font-family: Arial, sans-serif;
         }
 
         .nav-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.7);
-            background: #444;
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .nav-btn:active {
+            transform: scale(0.95);
         }
 
         .nav-btn:disabled {
@@ -130,30 +166,19 @@
         }
 
         .progress {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
             color: #e2e2e2;
-        }
-
-        .progress-bar {
-            flex: 1;
-            height: 8px;
-            background: #333;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: #667eea;
-            border-radius: 4px;
-            transition: width 0.3s ease;
-        }
-
-        .progress-text {
             font-weight: 600;
             font-size: 0.9rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .fade-in {
+            animation: fadeInContent 0.5s ease-in;
+        }
+
+        @keyframes fadeInContent {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         @media (max-width: 768px) {
@@ -183,7 +208,7 @@
 <body>
     <div class="main-content">
         <section class="description-section">
-            <h3 id="description-title">معرفی</h3>
+            <h3 id="description-title"><i class="fas fa-book"></i> معرفی</h3>
             <div id="description-content">
                 <p>تحمل ابهام در کنار ابتکار عمل جزو مهم‌ترین ویژگی‌هایی است که در ملاقات آدم‌های جدید به دنبالش می‌گردم. تحمل ابهام تعیین می‌کند که اگر دنیا طبق دلخواه ما پیش نرفت، واکنش ما به آن چه خواهد بود. ابهام در ساده‌ترین شکلش یعنی ندانستن و تحمل درد ندانستن اول گام برای دانستن است. تحمل ابهام که بالاتر برود، شخص با نادانسته‌ها زندگی می‌کند و به قدری با سؤالات درگیر می‌شود که در نهایت به آن برسد.</p>
                 <p>اولین بار با تحمل ابهام در فضای کاری آشنا شدم. اکثر کارهای استاندارد، ابهام کمی دارند. ورودی مشخص است، کار تعریف شده و خروجی مدنظر هم تعیین شده است. کارِ کارمند انجام اعمالی برای تبدیل ورودی به خروجی است. مثل کارگر خط تولید که وظیفه‌اش جدا کردن میوه‌های خراب است. میوه‌های ورودی مشخصند، میوه‌های خراب هم متر و معیار دارند. مسأله فقط اینجاست که کارگر میوه‌ها را ببیند و تشخیص دهد و جدا کند. البته که ابهام پایین مختص کارهای مکانیکی نیست. کار حسابداری هم ابهام پایینی دارد. اعداد و ارقام اگر درست ثبت شده باشند، همه‌چیز در تعادل است و حسابدار صرفاً اعداد را در جای درست خود در صورت مالی می‌گذارد. ابهام که کمی بیشتر شود، کار از روتین بودن خارج می‌شود. مثل راننده‌های تاکسی که بسته به درخواست مسافر، خروجی‌های متفاوتی خواهند داشت. اینجا مهارت و دانش اهمیت پیدا می‌کند که راننده تشخیص دهد که مسافر را قبول بکند یا نکند و اگر قبول کرد، از چه مسیری او را برساند. کار پزشک‌ها هم از همین جنسِ کارهای تطبیقی است.</p>
@@ -200,7 +225,7 @@
 
         <section class="simulation-section">
             <div class="simulation-header">
-                <h2 id="simulation-title">شبیه‌ساز</h2>
+                <h2 id="simulation-title"><i class="fas fa-play-circle"></i> شبیه‌ساز</h2>
             </div>
             <div class="iframe-container">
                 <iframe id="simulation-iframe" src="scenario-1.html"></iframe>
@@ -209,14 +234,9 @@
     </div>
 
     <nav class="navigation">
-        <button class="nav-btn" id="prev-btn" disabled>&rarr;</button>
-        <div class="progress">
-            <span class="progress-text" id="progress-text">۱ از ۱۴</span>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill" style="width: 7.14%;"></div>
-            </div>
-        </div>
-        <button class="nav-btn" id="next-btn">&larr;</button>
+        <button class="nav-btn" id="prev-btn" disabled><i class="fas fa-chevron-right"></i></button>
+        <div class="progress" id="progress-text">۱ از ۱۴</div>
+        <button class="nav-btn" id="next-btn"><i class="fas fa-chevron-left"></i></button>
     </nav>
 
     <script>
@@ -362,18 +382,28 @@
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
         const progressText = document.getElementById('progress-text');
-        const progressFill = document.getElementById('progress-fill');
 
         function updateContent() {
             const scenario = scenarios[currentIndex];
-            iframe.src = scenario.src;
-            titleEl.textContent = scenario.title;
-            descTitleEl.textContent = scenario.title;
-            descContentEl.innerHTML = scenario.description;
-            progressText.textContent = `${currentIndex + 1} از ${scenarios.length}`;
-            progressFill.style.width = `${((currentIndex + 1) / scenarios.length) * 100}%`;
-            prevBtn.disabled = currentIndex === 0;
-            nextBtn.disabled = currentIndex === scenarios.length - 1;
+            // Fade out
+            descContentEl.classList.remove('fade-in');
+            descTitleEl.classList.remove('fade-in');
+            titleEl.classList.remove('fade-in');
+
+            setTimeout(() => {
+                iframe.src = scenario.src;
+                titleEl.innerHTML = `<i class="fas fa-play-circle"></i> ${scenario.title}`;
+                descTitleEl.innerHTML = `<i class="fas fa-book"></i> ${scenario.title}`;
+                descContentEl.innerHTML = scenario.description;
+                progressText.textContent = `${currentIndex + 1} از ${scenarios.length}`;
+                prevBtn.disabled = currentIndex === 0;
+                nextBtn.disabled = currentIndex === scenarios.length - 1;
+
+                // Fade in
+                descContentEl.classList.add('fade-in');
+                descTitleEl.classList.add('fade-in');
+                titleEl.classList.add('fade-in');
+            }, 150);
         }
 
         prevBtn.addEventListener('click', () => {
@@ -391,6 +421,8 @@
         });
 
         // Initialize
+        titleEl.innerHTML = `<i class="fas fa-play-circle"></i> شبیه‌ساز`;
+        descTitleEl.innerHTML = `<i class="fas fa-book"></i> معرفی`;
         updateContent();
     </script>
 </body>
